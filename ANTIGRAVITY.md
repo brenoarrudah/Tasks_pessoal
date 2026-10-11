@@ -53,6 +53,7 @@ Gestor Pessoal de Tarefas, organização pessoal e produtividade. Aplicação we
 - **Etapa UI — DatePicker Interativo Shadcn/UI (11/10/2026):** substituição do input nativo de data no modal de tarefas pelo componente `Calendar` + `Popover` do Shadcn/UI, integrado à biblioteca `date-fns` com formatação e localização `ptBR` completa no Dark Mode.
 - **Etapa Perfil — Edição Interativa do Nome de Usuário (11/10/2026):** implementada funcionalidade de edição do nome de exibição no bloco de Perfil do Usuário em `/configuracoes`, com sincronização simultânea na tabela `public.usuarios` e nos metadados de Auth do Supabase, refletindo instantaneamente no Header e no Dropdown de Avatar via `refreshProfile()`.
 - **Etapa UI — Limpeza Visual do Dashboard (11/10/2026):** remoção da badge com a string de timezone (`America/Sao_Paulo`) no cabeçalho de "Tarefas do Dia", tornando a apresentação da data mais limpa e minimalista.
+- **Etapa Recorrência Semanal — Seleção de Dias da Semana Estilo Google Tasks (11/10/2026):** adicionada seleção múltipla de dias da semana (D, S, T, Q, Q, S, S) para recorrência semanal (`repeticao_dias_semana INTEGER[]`). Ao concluir uma tarefa recorrente com dias especificados, o sistema calcula inteligentemente a data do próximo dia selecionado dentro da semana atual ou avança para o ciclo seguinte considerando o intervalo configurado. Acompanha script de migração `supabase/migration_dias_semana.sql`.
 
 ## Próximos passos
 

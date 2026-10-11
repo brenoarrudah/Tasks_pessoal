@@ -6,10 +6,21 @@ export interface RecurrenceConfig {
   recorrente: boolean;
   repeticao_intervalo: number;
   repeticao_tipo: RepeticaoTipo;
+  repeticao_dias_semana?: number[] | null;
   termino_tipo: TerminoTipo;
   termino_data: string | null;
   termino_ocorrencias: number | null;
 }
+
+const DIAS_DA_SEMANA = [
+  { value: 0, label: 'D', name: 'Domingo' },
+  { value: 1, label: 'S', name: 'Segunda-feira' },
+  { value: 2, label: 'T', name: 'Terça-feira' },
+  { value: 3, label: 'Q', name: 'Quarta-feira' },
+  { value: 4, label: 'Q', name: 'Quinta-feira' },
+  { value: 5, label: 'S', name: 'Sexta-feira' },
+  { value: 6, label: 'S', name: 'Sábado' },
+];
 
 interface RecurrenceModalProps {
   isOpen: boolean;
@@ -28,6 +39,7 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
 }) => {
   const [intervalo, setIntervalo] = useState<number>(1);
   const [tipo, setTipo] = useState<RepeticaoTipo>('dia');
+  const [diasSemana, setDiasSemana] = useState<number[]>([]);
   const [terminoTipo, setTerminoTipo] = useState<TerminoTipo>('nunca');
   const [terminoData, setTerminoData] = useState<string>('');
   const [terminoOcorrencias, setTerminoOcorrencias] = useState<number>(1);
@@ -36,13 +48,31 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
     if (isOpen) {
       setIntervalo(initialConfig?.repeticao_intervalo || 1);
       setTipo(initialConfig?.repeticao_tipo || 'dia');
+      
+      const defaultDay = initialStartDate ? new Date(initialStartDate).getDay() : new Date().getDay();
+      if (initialConfig?.repeticao_dias_semana && initialConfig.repeticao_dias_semana.length > 0) {
+        setDiasSemana(initialConfig.repeticao_dias_semana);
+      } else {
+        setDiasSemana([defaultDay]);
+      }
+
       setTerminoTipo(initialConfig?.termino_tipo || 'nunca');
       setTerminoData(initialConfig?.termino_data || '');
       setTerminoOcorrencias(initialConfig?.termino_ocorrencias || 5);
     }
-  }, [isOpen, initialConfig]);
+  }, [isOpen, initialConfig, initialStartDate]);
 
   if (!isOpen) return null;
+
+  const toggleDiaSemana = (diaValue: number) => {
+    setDiasSemana((prev) => {
+      if (prev.includes(diaValue)) {
+        return prev.filter((d) => d !== diaValue);
+      } else {
+        return [...prev, diaValue].sort((a, b) => a - b);
+      }
+    });
+  };
 
   const handleConcluir = (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,6 +80,7 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
       recorrente: true,
       repeticao_intervalo: Math.max(1, Number(intervalo) || 1),
       repeticao_tipo: tipo,
+      repeticao_dias_semana: tipo === 'semana' && diasSemana.length > 0 ? diasSemana : null,
       termino_tipo: terminoTipo,
       termino_data: terminoTipo === 'data' && terminoData ? terminoData : null,
       termino_ocorrencias: terminoTipo === 'ocorrencias' ? Math.max(1, Number(terminoOcorrencias) || 1) : null,
@@ -97,7 +128,7 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
         <form onSubmit={handleConcluir} className="px-6 py-4 space-y-6">
           
           {/* Seção 1: Repetição a cada */}
-          <div className="space-y-2">
+          <div className="space-y-3">
             <label className="block text-xs font-medium uppercase tracking-wider text-zinc-400">
               Repetição a cada
             </label>
@@ -121,6 +152,35 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
                 <option value="ano">{intervalo > 1 ? 'anos' : 'ano'}</option>
               </select>
             </div>
+
+            {/* Seleção de Dias da Semana (Estilo Google Tasks) */}
+            {tipo === 'semana' && (
+              <div className="pt-2 animate-in fade-in duration-150">
+                <p className="text-[11px] font-medium text-zinc-400 mb-2">
+                  Repetir em:
+                </p>
+                <div className="flex items-center justify-between gap-1">
+                  {DIAS_DA_SEMANA.map((dia) => {
+                    const isSelected = diasSemana.includes(dia.value);
+                    return (
+                      <button
+                        key={dia.value}
+                        type="button"
+                        onClick={() => toggleDiaSemana(dia.value)}
+                        title={dia.name}
+                        className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-medium transition-all cursor-pointer ${
+                          isSelected
+                            ? 'bg-blue-600 text-white font-bold shadow-md shadow-blue-600/30'
+                            : 'bg-zinc-800/80 hover:bg-zinc-750 text-zinc-400 hover:text-zinc-200 border border-zinc-750'
+                        }`}
+                      >
+                        {dia.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Seção 2: Início */}

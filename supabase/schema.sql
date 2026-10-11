@@ -53,6 +53,7 @@ CREATE TABLE IF NOT EXISTS public.crm_tarefas (
     recorrente BOOLEAN NOT NULL DEFAULT FALSE,
     repeticao_intervalo INTEGER DEFAULT 1,
     repeticao_tipo VARCHAR(20) DEFAULT 'dia',
+    repeticao_dias_semana INTEGER[],
     termino_tipo VARCHAR(20) DEFAULT 'nunca',
     termino_data DATE,
     termino_ocorrencias INTEGER,

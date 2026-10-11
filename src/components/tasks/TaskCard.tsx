@@ -164,7 +164,19 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) =>
 
             {task.recorrente && (
               <span 
-                title={`Repete a cada ${task.repeticao_intervalo || 1} ${task.repeticao_tipo || 'dia'}(s)`}
+                title={(() => {
+                  const base = `Repete a cada ${task.repeticao_intervalo || 1} ${task.repeticao_tipo || 'dia'}(s)`;
+                  if (task.repeticao_tipo === 'semana' && task.repeticao_dias_semana && task.repeticao_dias_semana.length > 0) {
+                    const diasLabels = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+                    const diasTexto = task.repeticao_dias_semana
+                      .slice()
+                      .sort((a, b) => a - b)
+                      .map((d) => diasLabels[d])
+                      .join(', ');
+                    return `${base} (${diasTexto})`;
+                  }
+                  return base;
+                })()}
                 className="flex items-center gap-1.2 text-purple-400 font-medium bg-purple-500/10 px-2 py-0.5 rounded-lg border border-purple-500/20"
               >
                 <RotateCcw className="w-3.5 h-3.5" />

@@ -26,6 +26,7 @@ export interface Task {
   recorrente?: boolean;
   repeticao_intervalo?: number;
   repeticao_tipo?: RepeticaoTipo;
+  repeticao_dias_semana?: number[] | null;
   termino_tipo?: TerminoTipo;
   termino_data?: string | null;
   termino_ocorrencias?: number | null;
@@ -49,6 +50,7 @@ interface TasksContextType {
     recorrente?: boolean;
     repeticao_intervalo?: number;
     repeticao_tipo?: RepeticaoTipo;
+    repeticao_dias_semana?: number[] | null;
     termino_tipo?: TerminoTipo;
     termino_data?: string | null;
     termino_ocorrencias?: number | null;
@@ -65,6 +67,7 @@ interface TasksContextType {
       recorrente?: boolean;
       repeticao_intervalo?: number;
       repeticao_tipo?: RepeticaoTipo;
+      repeticao_dias_semana?: number[] | null;
       termino_tipo?: TerminoTipo;
       termino_data?: string | null;
       termino_ocorrencias?: number | null;
@@ -179,6 +182,7 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         recorrente: data.recorrente ?? false,
         repeticao_intervalo: data.repeticao_intervalo ?? 1,
         repeticao_tipo: data.repeticao_tipo ?? 'dia',
+        repeticao_dias_semana: data.repeticao_dias_semana ?? null,
         termino_tipo: data.termino_tipo ?? 'nunca',
         termino_data: data.termino_data ?? null,
         termino_ocorrencias: data.termino_ocorrencias ?? null,
@@ -212,6 +216,7 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       recorrente?: boolean;
       repeticao_intervalo?: number;
       repeticao_tipo?: RepeticaoTipo;
+      repeticao_dias_semana?: number[] | null;
       termino_tipo?: TerminoTipo;
       termino_data?: string | null;
       termino_ocorrencias?: number | null;
@@ -230,6 +235,7 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         ...(data.recorrente !== undefined && { recorrente: data.recorrente }),
         ...(data.repeticao_intervalo !== undefined && { repeticao_intervalo: data.repeticao_intervalo }),
         ...(data.repeticao_tipo !== undefined && { repeticao_tipo: data.repeticao_tipo }),
+        ...(data.repeticao_dias_semana !== undefined && { repeticao_dias_semana: data.repeticao_dias_semana }),
         ...(data.termino_tipo !== undefined && { termino_tipo: data.termino_tipo }),
         ...(data.termino_data !== undefined && { termino_data: data.termino_data }),
         ...(data.termino_ocorrencias !== undefined && { termino_ocorrencias: data.termino_ocorrencias }),
@@ -294,7 +300,22 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (tipo === 'dia') {
           nextDate.setDate(nextDate.getDate() + intervalo);
         } else if (tipo === 'semana') {
-          nextDate.setDate(nextDate.getDate() + (intervalo * 7));
+          const diasSemana = (task.repeticao_dias_semana || []).slice().sort((a, b) => a - b);
+          if (diasSemana.length > 0) {
+            const currentDayOfWeek = baseDate.getDay();
+            const nextDayInSameWeek = diasSemana.find((d) => d > currentDayOfWeek);
+
+            if (nextDayInSameWeek !== undefined) {
+              const daysToAdd = nextDayInSameWeek - currentDayOfWeek;
+              nextDate.setDate(nextDate.getDate() + daysToAdd);
+            } else {
+              const firstDay = diasSemana[0];
+              const daysToAdd = (7 - currentDayOfWeek) + firstDay + ((intervalo - 1) * 7);
+              nextDate.setDate(nextDate.getDate() + daysToAdd);
+            }
+          } else {
+            nextDate.setDate(nextDate.getDate() + (intervalo * 7));
+          }
         } else if (tipo === 'mes') {
           nextDate.setMonth(nextDate.getMonth() + intervalo);
         } else if (tipo === 'ano') {
@@ -331,6 +352,7 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             recorrente: true,
             repeticao_intervalo: task.repeticao_intervalo || 1,
             repeticao_tipo: task.repeticao_tipo || 'dia',
+            repeticao_dias_semana: task.repeticao_dias_semana || null,
             termino_tipo: task.termino_tipo || 'nunca',
             termino_data: task.termino_data || null,
             termino_ocorrencias: task.termino_ocorrencias || null,

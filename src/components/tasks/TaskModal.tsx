@@ -27,6 +27,7 @@ const defaultRecurrence: RecurrenceConfig = {
   recorrente: false,
   repeticao_intervalo: 1,
   repeticao_tipo: 'dia',
+  repeticao_dias_semana: null,
   termino_tipo: 'nunca',
   termino_data: null,
   termino_ocorrencias: null,
@@ -71,6 +72,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
         recorrente: !!taskToEdit.recorrente,
         repeticao_intervalo: taskToEdit.repeticao_intervalo || 1,
         repeticao_tipo: taskToEdit.repeticao_tipo || 'dia',
+        repeticao_dias_semana: taskToEdit.repeticao_dias_semana || null,
         termino_tipo: taskToEdit.termino_tipo || 'nunca',
         termino_data: taskToEdit.termino_data || null,
         termino_ocorrencias: taskToEdit.termino_ocorrencias || null,
@@ -97,6 +99,16 @@ export const TaskModal: React.FC<TaskModalProps> = ({
     else if (rec.repeticao_tipo === 'ano') tipoLabel = intervalo > 1 ? 'anos' : 'ano';
 
     let summary = `Repete a cada ${intervalo} ${tipoLabel}`;
+
+    if (rec.repeticao_tipo === 'semana' && rec.repeticao_dias_semana && rec.repeticao_dias_semana.length > 0) {
+      const diasLabels = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+      const diasTexto = rec.repeticao_dias_semana
+        .slice()
+        .sort((a, b) => a - b)
+        .map((d) => diasLabels[d])
+        .join(', ');
+      summary += ` (${diasTexto})`;
+    }
 
     if (rec.termino_tipo === 'data' && rec.termino_data) {
       const parts = rec.termino_data.split('-');
@@ -127,6 +139,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
         recorrente: recurrence.recorrente,
         repeticao_intervalo: recurrence.repeticao_intervalo,
         repeticao_tipo: recurrence.repeticao_tipo,
+        repeticao_dias_semana: recurrence.repeticao_dias_semana || null,
         termino_tipo: recurrence.termino_tipo,
         termino_data: recurrence.termino_data,
         termino_ocorrencias: recurrence.termino_ocorrencias,
