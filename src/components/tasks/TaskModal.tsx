@@ -133,7 +133,12 @@ export const TaskModal: React.FC<TaskModalProps> = ({
       setLoading(true);
       setError(null);
 
-      const formattedPrazo = selectedDate ? selectedDate.toISOString() : null;
+      let formattedPrazo = selectedDate ? selectedDate.toISOString() : null;
+
+      // Se for recorrente e não possuir prazo definido, atribui a data atual (hoje) automaticamente
+      if (recurrence.recorrente && !formattedPrazo) {
+        formattedPrazo = new Date().toISOString();
+      }
 
       const recurrenceData = {
         recorrente: recurrence.recorrente,

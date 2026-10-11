@@ -171,15 +171,18 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (!user) return null;
 
     try {
+      const isRecorrente = data.recorrente ?? false;
+      const dataPrazo = (isRecorrente && !data.prazo) ? new Date().toISOString() : (data.prazo || null);
+
       const payload = {
         id_usuario: user.id,
         titulo: data.titulo.trim(),
         descricao: data.descricao?.trim() || null,
-        prazo: data.prazo || null,
+        prazo: dataPrazo,
         prioridade: data.prioridade || 'media',
         id_area: data.id_area || null,
         concluida: false,
-        recorrente: data.recorrente ?? false,
+        recorrente: isRecorrente,
         repeticao_intervalo: data.repeticao_intervalo ?? 1,
         repeticao_tipo: data.repeticao_tipo ?? 'dia',
         repeticao_dias_semana: data.repeticao_dias_semana ?? null,
@@ -226,10 +229,15 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (!user) return false;
 
     try {
+      let prazoToUpdate = data.prazo;
+      if (data.recorrente === true && !prazoToUpdate) {
+        prazoToUpdate = new Date().toISOString();
+      }
+
       const payload = {
         ...(data.titulo !== undefined && { titulo: data.titulo.trim() }),
         ...(data.descricao !== undefined && { descricao: data.descricao?.trim() || null }),
-        ...(data.prazo !== undefined && { prazo: data.prazo || null }),
+        ...(data.prazo !== undefined && { prazo: prazoToUpdate || null }),
         ...(data.prioridade !== undefined && { prioridade: data.prioridade }),
         ...(data.id_area !== undefined && { id_area: data.id_area || null }),
         ...(data.recorrente !== undefined && { recorrente: data.recorrente }),
