@@ -82,11 +82,8 @@ export const Dashboard: React.FC = () => {
               Tarefas do Dia
             </h1>
           </div>
-          <p className="text-sm text-zinc-400 mt-1 capitalize flex items-center gap-2">
-            <span>{formattedToday}</span>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-500 font-mono">
-              America/Sao_Paulo
-            </span>
+          <p className="text-sm text-zinc-400 mt-1 capitalize">
+            {formattedToday}
           </p>
         </div>
 

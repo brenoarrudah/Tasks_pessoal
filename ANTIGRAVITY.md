@@ -52,6 +52,7 @@ Gestor Pessoal de Tarefas, organização pessoal e produtividade. Aplicação we
 - **Etapa Recorrência — Sistema de Repetição Customizada Estilo Google Tasks (11/10/2026):** implementado modal fiel ao Google Tasks para repetição a cada [N] dias/semanas/meses/anos com condições de término (Nunca, Em data, Após X ocorrências). Lógica funcional em `toggleTaskComplete` para geração automática da próxima demanda com subtarefas reinicializadas, mais ferramenta de limpeza de duplicadas em `/configuracoes` e scripts SQL dedicados (`migration_recurrence.sql` e `limpeza_tarefas.sql`).
 - **Etapa UI — DatePicker Interativo Shadcn/UI (11/10/2026):** substituição do input nativo de data no modal de tarefas pelo componente `Calendar` + `Popover` do Shadcn/UI, integrado à biblioteca `date-fns` com formatação e localização `ptBR` completa no Dark Mode.
 - **Etapa Perfil — Edição Interativa do Nome de Usuário (11/10/2026):** implementada funcionalidade de edição do nome de exibição no bloco de Perfil do Usuário em `/configuracoes`, com sincronização simultânea na tabela `public.usuarios` e nos metadados de Auth do Supabase, refletindo instantaneamente no Header e no Dropdown de Avatar via `refreshProfile()`.
+- **Etapa UI — Limpeza Visual do Dashboard (11/10/2026):** remoção da badge com a string de timezone (`America/Sao_Paulo`) no cabeçalho de "Tarefas do Dia", tornando a apresentação da data mais limpa e minimalista.
 
 ## Próximos passos
 
