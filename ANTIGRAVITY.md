@@ -48,10 +48,11 @@ Gestor Pessoal de Tarefas, organização pessoal e produtividade. Aplicação we
 - **Etapa 5 — Visão "Tarefas do Dia" e Dashboard:** implementado o Dashboard na rota `/` com filtragem exata de data no fuso horário `America/Sao_Paulo`, contador em tempo real de demandas pendentes, barra de progresso diária, suporte a tarefas atrasadas, listagem unificada com badges de área/prioridade e acordeão de concluídas.
 - **Etapa 6 — Auditoria de segurança (02/10/2026):** realizada a auditoria de segurança no banco de dados e no frontend. RLS ativo em todas as 6 tabelas, zero exposição de `service_role` key no código, rotas 100% protegidas por `ProtectedRoute` e isolamento estrito de dados por `auth.uid()`. Correções de segurança aplicadas no banco de dados.
 - **Etapa 7 — Deploy seguro para o GitHub (02/10/2026):** verificações de segurança finalizadas (verificação de segredos, `.gitignore` estrito, RLS ativo e variáveis públicas isoladas), repositório remoto configurado e código enviado com sucesso para https://github.com/brenoarrudah/Tasks_pessoal.
+- **Etapa Extra — Botão de Importação do Google Tasks (11/10/2026):** adicionada seção em `/configuracoes` para ingestão direta de arquivos `.json` do Google Takeout, normalizando listas para `areas_foco` e demandas (com notas, prazos e conclusão) para `crm_tarefas`.
 
 ## Próximos passos
 
-- **Projeto concluído com sucesso!** Todas as 7 etapas planejadas foram finalizadas, validadas e publicadas com segurança.
+- Sistema em evolução contínua com deploy automático integrado ao GitHub e Vercel.
 
 ## Integrações
 
