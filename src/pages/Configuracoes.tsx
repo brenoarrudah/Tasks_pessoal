@@ -230,7 +230,7 @@ export const Configuracoes: React.FC = () => {
       .order('ordem', { ascending: false })
       .limit(1);
 
-    let currentOrder = existingAreas && existingAreas.length > 0 ? (existingAreas[0].ordem || 0) + 1 : 0;
+    let currentOrder = existingAreas && existingAreas.length > 0 ? (existingAreas[0].ordem || 0) + 1 : 1;
 
     for (const list of lists) {
       // 1. Criar nova Área de Foco com ícone e cor padrão

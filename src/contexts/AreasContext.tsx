@@ -32,6 +32,38 @@ export const AreasProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  const normalizeAreaOrders = useCallback(async (items: AreaFoco[]) => {
+    if (!user || items.length === 0) return items;
+
+    const updatesNeeded: { id: string; ordem: number }[] = [];
+    const normalizedList: AreaFoco[] = items.map((item, index) => {
+      const expectedOrdem = index + 1;
+      if (item.ordem !== expectedOrdem) {
+        updatesNeeded.push({ id: item.id, ordem: expectedOrdem });
+        return { ...item, ordem: expectedOrdem };
+      }
+      return item;
+    });
+
+    if (updatesNeeded.length > 0) {
+      try {
+        await Promise.all(
+          updatesNeeded.map(({ id, ordem }) =>
+            supabase
+              .from('areas_foco')
+              .update({ ordem, updated_at: new Date().toISOString() })
+              .eq('id', id)
+              .eq('id_usuario', user.id)
+          )
+        );
+      } catch (updateErr) {
+        console.error('Erro ao salvar normalização de ordens no Supabase:', updateErr);
+      }
+    }
+
+    return normalizedList;
+  }, [user]);
+
   const fetchAreas = useCallback(async () => {
     if (!user) {
       setAreas([]);
@@ -50,14 +82,37 @@ export const AreasProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         .order('created_at', { ascending: true });
 
       if (fetchErr) throw fetchErr;
-      setAreas(data || []);
+
+      const currentList: AreaFoco[] = data || [];
+
+      // Verificar se há necessidade de normalização (se primeiro item !== 1 ou se houver saltos/buracos)
+      const needsNormalization =
+        currentList.length > 0 &&
+        (currentList[0].ordem !== 1 ||
+          currentList.some((item, idx) => item.ordem !== idx + 1));
+
+      if (needsNormalization) {
+        // Atualiza imediatamente o estado para refletir a sequência limpa 1, 2, 3...
+        const normalizedOptimistic = currentList.map((item, idx) => ({
+          ...item,
+          ordem: idx + 1,
+        }));
+        setAreas(normalizedOptimistic);
+
+        // Dispara re-indexação no Supabase em segundo plano
+        normalizeAreaOrders(currentList).catch((normErr) =>
+          console.error('Erro ao normalizar ordens das áreas em segundo plano:', normErr)
+        );
+      } else {
+        setAreas(currentList);
+      }
     } catch (err: unknown) {
       console.error('Erro ao carregar áreas de foco:', err);
       setError('Não foi possível carregar as áreas de foco.');
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, normalizeAreaOrders]);
 
   useEffect(() => {
     fetchAreas();
@@ -89,9 +144,8 @@ export const AreasProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (!user) return null;
 
     try {
-      // Calcular a maior ordem atual para colocar a nova área ao final
-      const maxOrdem = areas.reduce((max, area) => (area.ordem > max ? area.ordem : max), -1);
-      const novaOrdem = maxOrdem + 1;
+      // Nova ordem é a próxima posição contínua (ex: 1, 2, 3...)
+      const novaOrdem = areas.length + 1;
 
       const novaArea = {
         id_usuario: user.id,
@@ -175,6 +229,30 @@ export const AreasProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         await logAuditAction('DELETE', id, areaAntiga, null);
       }
 
+      // Re-indexar a lista restante garantindo sequência contínua (1, 2, 3...)
+      const remainingAreas = areas
+        .filter((a) => a.id !== id)
+        .map((area, index) => ({
+          ...area,
+          ordem: index + 1,
+        }));
+
+      // Atualização otimista imediata
+      setAreas(remainingAreas);
+
+      // Atualizar no Supabase para fechar lacunas
+      if (remainingAreas.length > 0) {
+        await Promise.all(
+          remainingAreas.map((area) =>
+            supabase
+              .from('areas_foco')
+              .update({ ordem: area.ordem, updated_at: new Date().toISOString() })
+              .eq('id', area.id)
+              .eq('id_usuario', user.id)
+          )
+        );
+      }
+
       await fetchAreas();
       return true;
     } catch (err: unknown) {
@@ -192,26 +270,36 @@ export const AreasProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
     if (targetIndex < 0 || targetIndex >= areas.length) return false;
 
-    const currentArea = areas[currentIndex];
-    const targetArea = areas[targetIndex];
+    // Criar nova lista reordenada
+    const newAreas = [...areas];
+    const [movedArea] = newAreas.splice(currentIndex, 1);
+    newAreas.splice(targetIndex, 0, movedArea);
+
+    // Forçar o campo ordem a ser estritamente igual ao seu index + 1 (1, 2, 3...)
+    const reindexedAreas = newAreas.map((area, index) => ({
+      ...area,
+      ordem: index + 1,
+    }));
+
+    // Atualização otimista imediata na interface
+    setAreas(reindexedAreas);
 
     try {
-      // Inverter valores de ordem
-      const tempOrdem = currentArea.ordem;
-      const targetOrdem = targetArea.ordem === tempOrdem 
-        ? (direction === 'up' ? tempOrdem - 1 : tempOrdem + 1)
-        : targetArea.ordem;
+      // Atualizar todas as ordens no Supabase
+      await Promise.all(
+        reindexedAreas.map((area) =>
+          supabase
+            .from('areas_foco')
+            .update({ ordem: area.ordem, updated_at: new Date().toISOString() })
+            .eq('id', area.id)
+            .eq('id_usuario', user.id)
+        )
+      );
 
-      // Atualizar ambos em lote
-      await Promise.all([
-        supabase.from('areas_foco').update({ ordem: targetOrdem }).eq('id', currentArea.id),
-        supabase.from('areas_foco').update({ ordem: tempOrdem }).eq('id', targetArea.id),
-      ]);
-
-      await fetchAreas();
       return true;
     } catch (err: unknown) {
       console.error('Erro ao reordenar áreas:', err);
+      await fetchAreas();
       return false;
     }
   };
