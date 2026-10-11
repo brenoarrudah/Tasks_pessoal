@@ -50,6 +50,7 @@ Gestor Pessoal de Tarefas, organização pessoal e produtividade. Aplicação we
 - **Etapa 7 — Deploy seguro para o GitHub (02/10/2026):** verificações de segurança finalizadas (verificação de segredos, `.gitignore` estrito, RLS ativo e variáveis públicas isoladas), repositório remoto configurado e código enviado com sucesso para https://github.com/brenoarrudah/Tasks_pessoal.
 - **Etapa Extra — Botão de Importação do Google Tasks (11/10/2026):** adicionada seção em `/configuracoes` para ingestão direta de arquivos `.json` do Google Takeout, normalizando listas para `areas_foco` e demandas (com notas, prazos e conclusão) para `crm_tarefas`.
 - **Etapa Recorrência — Sistema de Repetição Customizada Estilo Google Tasks (11/10/2026):** implementado modal fiel ao Google Tasks para repetição a cada [N] dias/semanas/meses/anos com condições de término (Nunca, Em data, Após X ocorrências). Lógica funcional em `toggleTaskComplete` para geração automática da próxima demanda com subtarefas reinicializadas, mais ferramenta de limpeza de duplicadas em `/configuracoes` e scripts SQL dedicados (`migration_recurrence.sql` e `limpeza_tarefas.sql`).
+- **Etapa UI — DatePicker Interativo Shadcn/UI (11/10/2026):** substituição do input nativo de data no modal de tarefas pelo componente `Calendar` + `Popover` do Shadcn/UI, integrado à biblioteca `date-fns` com formatação e localização `ptBR` completa no Dark Mode.
 
 ## Próximos passos
 

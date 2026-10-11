@@ -1,7 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { X, Loader2, Calendar, Layers, Flag, RotateCcw } from 'lucide-react';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { 
+  X, 
+  Loader2, 
+  Calendar as CalendarIcon, 
+  Layers, 
+  Flag, 
+  RotateCcw 
+} from 'lucide-react';
 import { useTasks, Task } from '@/contexts/TasksContext';
 import { useAreas } from '@/contexts/AreasContext';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { cn } from '@/lib/utils';
 import { RecurrenceModal, RecurrenceConfig } from './RecurrenceModal';
 
 interface TaskModalProps {
@@ -31,7 +43,8 @@ export const TaskModal: React.FC<TaskModalProps> = ({
 
   const [titulo, setTitulo] = useState('');
   const [descricao, setDescricao] = useState('');
-  const [prazo, setPrazo] = useState('');
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [prioridade, setPrioridade] = useState<'alta' | 'media' | 'baixa'>('media');
   const [idArea, setIdArea] = useState<string>('');
   
@@ -46,7 +59,12 @@ export const TaskModal: React.FC<TaskModalProps> = ({
     if (taskToEdit) {
       setTitulo(taskToEdit.titulo);
       setDescricao(taskToEdit.descricao || '');
-      setPrazo(taskToEdit.prazo ? new Date(taskToEdit.prazo).toISOString().slice(0, 16) : '');
+      if (taskToEdit.prazo) {
+        const d = new Date(taskToEdit.prazo);
+        setSelectedDate(!isNaN(d.getTime()) ? d : undefined);
+      } else {
+        setSelectedDate(undefined);
+      }
       setPrioridade(taskToEdit.prioridade || 'media');
       setIdArea(taskToEdit.id_area || '');
       setRecurrence({
@@ -60,7 +78,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
     } else {
       setTitulo('');
       setDescricao('');
-      setPrazo('');
+      setSelectedDate(undefined);
       setPrioridade('media');
       setIdArea(defaultAreaId || (areas.length > 0 ? areas[0].id : ''));
       setRecurrence(defaultRecurrence);
@@ -103,7 +121,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
       setLoading(true);
       setError(null);
 
-      const formattedPrazo = prazo ? new Date(prazo).toISOString() : null;
+      const formattedPrazo = selectedDate ? selectedDate.toISOString() : null;
 
       const recurrenceData = {
         recorrente: recurrence.recorrente,
@@ -251,15 +269,58 @@ export const TaskModal: React.FC<TaskModalProps> = ({
             <div className="space-y-3 pt-1">
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300 mb-1.5 flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5 text-zinc-400" />
+                  <CalendarIcon className="w-3.5 h-3.5 text-zinc-400" />
                   Prazo / Vencimento (Opcional)
                 </label>
-                <input
-                  type="datetime-local"
-                  value={prazo}
-                  onChange={(e) => setPrazo(e.target.value)}
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-zinc-100 text-sm focus:outline-none focus:border-blue-500 transition-colors"
-                />
+
+                <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+                  <PopoverTrigger asChild>
+                    <button
+                      type="button"
+                      className={cn(
+                        "w-full flex items-center justify-between bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm transition-all text-left cursor-pointer",
+                        "hover:border-zinc-700 focus:outline-hidden focus:border-blue-500 focus:ring-1 focus:ring-blue-500",
+                        !selectedDate && "text-zinc-500"
+                      )}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <CalendarIcon className="w-4 h-4 text-zinc-400 shrink-0" />
+                        <span className={cn("truncate", selectedDate ? "text-zinc-100 font-medium" : "text-zinc-500")}>
+                          {selectedDate
+                            ? format(selectedDate, "d 'de' MMMM 'de' yyyy", { locale: ptBR })
+                            : "Selecione uma data"}
+                        </span>
+                      </div>
+
+                      {selectedDate && (
+                        <span
+                          role="button"
+                          tabIndex={0}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedDate(undefined);
+                          }}
+                          title="Remover data"
+                          className="p-1 rounded-lg text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </span>
+                      )}
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-2 bg-zinc-950 border-zinc-800 shadow-2xl" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={(date) => {
+                        setSelectedDate(date);
+                        setIsCalendarOpen(false);
+                      }}
+                      locale={ptBR}
+                      autoFocus
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
 
               {/* Botão de Repetir / Chip de Recorrência Configurada */}
@@ -336,7 +397,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
         onClose={() => setIsRecurrenceModalOpen(false)}
         onSave={(config) => setRecurrence(config)}
         initialConfig={recurrence}
-        initialStartDate={prazo}
+        initialStartDate={selectedDate ? selectedDate.toISOString() : null}
       />
     </>
   );
