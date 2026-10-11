@@ -42,8 +42,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const refreshProfile = async () => {
-    if (user) {
-      await fetchProfile(user.id);
+    try {
+      const { data: { user: freshUser } } = await supabase.auth.getUser();
+      if (freshUser) {
+        setUser(freshUser);
+        await fetchProfile(freshUser.id);
+      } else if (user) {
+        await fetchProfile(user.id);
+      }
+    } catch (err) {
+      console.error('Erro ao atualizar perfil:', err);
+      if (user) {
+        await fetchProfile(user.id);
+      }
     }
   };
 

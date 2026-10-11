@@ -8,7 +8,10 @@ import {
   CheckCircle2, 
   AlertCircle, 
   Loader2,
-  Info
+  Info,
+  Pencil,
+  Check,
+  X
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAreas } from '@/contexts/AreasContext';
@@ -30,7 +33,7 @@ interface ParsedList {
 }
 
 export const Configuracoes: React.FC = () => {
-  const { user, profile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const { fetchAreas } = useAreas();
   const { fetchTasks } = useTasks();
 
@@ -41,6 +44,78 @@ export const Configuracoes: React.FC = () => {
 
   const [cleaning, setCleaning] = useState(false);
   const [cleanSuccess, setCleanSuccess] = useState<string | null>(null);
+
+  // Estados para edição do nome de usuário
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editedName, setEditedName] = useState('');
+  const [isSavingName, setIsSavingName] = useState(false);
+  const [profileToast, setProfileToast] = useState<string | null>(null);
+  const [profileError, setProfileError] = useState<string | null>(null);
+
+  const currentDisplayName = profile?.nome || user?.user_metadata?.full_name || 'Usuário Gestor';
+
+  const handleStartEdit = () => {
+    setEditedName(currentDisplayName);
+    setIsEditingName(true);
+    setProfileError(null);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditingName(false);
+    setEditedName('');
+    setProfileError(null);
+  };
+
+  const handleAtualizarNome = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!user) return;
+    const novoNome = editedName.trim();
+    if (!novoNome) {
+      setProfileError('O nome não pode ficar em branco.');
+      return;
+    }
+
+    setIsSavingName(true);
+    setProfileError(null);
+
+    try {
+      // 1. Atualizar campo nome na tabela public.usuarios
+      const { error: usuariosErr } = await supabase
+        .from('usuarios')
+        .upsert({
+          id: user.id,
+          nome: novoNome,
+          email: user.email || '',
+          updated_at: new Date().toISOString(),
+        });
+
+      if (usuariosErr) {
+        console.warn('Erro ao atualizar tabela usuarios:', usuariosErr);
+      }
+
+      // 2. Atualizar metadados no Supabase Auth
+      const { error: authErr } = await supabase.auth.updateUser({
+        data: {
+          nome: novoNome,
+          full_name: novoNome,
+        },
+      });
+
+      if (authErr) throw authErr;
+
+      // 3. Atualizar contexto global para sincronizar Header, Avatar, etc.
+      await refreshProfile();
+
+      setIsEditingName(false);
+      setProfileToast('Nome atualizado com sucesso!');
+      setTimeout(() => setProfileToast(null), 3500);
+    } catch (err: unknown) {
+      console.error('Erro ao atualizar nome:', err);
+      setProfileError(err instanceof Error ? err.message : 'Falha ao atualizar o nome.');
+    } finally {
+      setIsSavingName(false);
+    }
+  };
 
   // Normalização e extração de listas e tarefas de arquivos do Google Takeout
   const parseGoogleTasksJson = (jsonText: string, fallbackFileName: string): ParsedList[] => {
@@ -371,10 +446,62 @@ export const Configuracoes: React.FC = () => {
           </div>
           <div className="space-y-3 pt-2 text-sm">
             <div>
-              <span className="text-xs font-medium text-zinc-400 block uppercase">Nome</span>
-              <span className="text-zinc-200 font-medium">
-                {profile?.nome || user?.user_metadata?.full_name || 'Usuário Gestor'}
-              </span>
+              <span className="text-xs font-medium text-zinc-400 block uppercase mb-1">Nome</span>
+              {!isEditingName ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-zinc-200 font-medium">
+                    {currentDisplayName}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleStartEdit}
+                    title="Editar nome"
+                    className="p-1.5 rounded-lg text-zinc-400 hover:text-blue-400 hover:bg-blue-600/10 transition-colors cursor-pointer"
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleAtualizarNome} className="flex items-center gap-2 max-w-sm mt-1">
+                  <input
+                    type="text"
+                    autoFocus
+                    required
+                    disabled={isSavingName}
+                    value={editedName}
+                    onChange={(e) => setEditedName(e.target.value)}
+                    placeholder="Digite seu nome..."
+                    className="flex-1 bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-1.5 text-zinc-100 text-sm focus:outline-hidden focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
+                  />
+                  <button
+                    type="submit"
+                    disabled={isSavingName || !editedName.trim()}
+                    title="Salvar"
+                    className="p-2 rounded-xl bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white transition-colors cursor-pointer disabled:opacity-50 shrink-0 shadow-xs"
+                  >
+                    {isSavingName ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Check className="w-4 h-4" />
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCancelEdit}
+                    disabled={isSavingName}
+                    title="Cancelar"
+                    className="p-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-100 transition-colors cursor-pointer shrink-0"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </form>
+              )}
+              {profileError && (
+                <p className="text-xs text-red-400 mt-1 flex items-center gap-1">
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                  <span>{profileError}</span>
+                </p>
+              )}
             </div>
             <div>
               <span className="text-xs font-medium text-zinc-400 block uppercase">E-mail</span>
@@ -551,6 +678,14 @@ export const Configuracoes: React.FC = () => {
           </p>
         </div>
       </div>
+
+      {/* Toast Flutuante de Confirmação */}
+      {profileToast && (
+        <div className="fixed bottom-6 right-6 z-50 bg-zinc-900 border border-emerald-500/30 text-zinc-100 px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3 animate-in slide-in-from-bottom-5 duration-200">
+          <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+          <span className="text-sm font-medium">{profileToast}</span>
+        </div>
+      )}
     </div>
   );
 };
