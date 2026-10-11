@@ -2,6 +2,9 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import { supabase } from '@/lib/supabase';
 import { useAuth } from './AuthContext';
 
+export type RepeticaoTipo = 'dia' | 'semana' | 'mes' | 'ano';
+export type TerminoTipo = 'nunca' | 'data' | 'ocorrencias';
+
 export interface Subtask {
   id: string;
   id_tarefa: string;
@@ -20,6 +23,13 @@ export interface Task {
   prioridade: 'alta' | 'media' | 'baixa';
   concluida: boolean;
   concluida_em: string | null;
+  recorrente?: boolean;
+  repeticao_intervalo?: number;
+  repeticao_tipo?: RepeticaoTipo;
+  termino_tipo?: TerminoTipo;
+  termino_data?: string | null;
+  termino_ocorrencias?: number | null;
+  ocorrencias_realizadas?: number;
   created_at: string;
   updated_at: string;
   subtarefas?: Subtask[];
@@ -36,6 +46,13 @@ interface TasksContextType {
     prazo?: string | null;
     prioridade: 'alta' | 'media' | 'baixa';
     id_area?: string | null;
+    recorrente?: boolean;
+    repeticao_intervalo?: number;
+    repeticao_tipo?: RepeticaoTipo;
+    termino_tipo?: TerminoTipo;
+    termino_data?: string | null;
+    termino_ocorrencias?: number | null;
+    ocorrencias_realizadas?: number;
   }) => Promise<Task | null>;
   updateTask: (
     id: string,
@@ -45,6 +62,13 @@ interface TasksContextType {
       prazo?: string | null;
       prioridade?: 'alta' | 'media' | 'baixa';
       id_area?: string | null;
+      recorrente?: boolean;
+      repeticao_intervalo?: number;
+      repeticao_tipo?: RepeticaoTipo;
+      termino_tipo?: TerminoTipo;
+      termino_data?: string | null;
+      termino_ocorrencias?: number | null;
+      ocorrencias_realizadas?: number;
     }
   ) => Promise<boolean>;
   toggleTaskComplete: (id: string, currentCompleted: boolean) => Promise<boolean>;
@@ -133,6 +157,13 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     prazo?: string | null;
     prioridade: 'alta' | 'media' | 'baixa';
     id_area?: string | null;
+    recorrente?: boolean;
+    repeticao_intervalo?: number;
+    repeticao_tipo?: RepeticaoTipo;
+    termino_tipo?: TerminoTipo;
+    termino_data?: string | null;
+    termino_ocorrencias?: number | null;
+    ocorrencias_realizadas?: number;
   }) => {
     if (!user) return null;
 
@@ -145,6 +176,13 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         prioridade: data.prioridade || 'media',
         id_area: data.id_area || null,
         concluida: false,
+        recorrente: data.recorrente ?? false,
+        repeticao_intervalo: data.repeticao_intervalo ?? 1,
+        repeticao_tipo: data.repeticao_tipo ?? 'dia',
+        termino_tipo: data.termino_tipo ?? 'nunca',
+        termino_data: data.termino_data ?? null,
+        termino_ocorrencias: data.termino_ocorrencias ?? null,
+        ocorrencias_realizadas: data.ocorrencias_realizadas ?? 0,
       };
 
       const { data: inserted, error: insertErr } = await supabase
@@ -171,6 +209,13 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       prazo?: string | null;
       prioridade?: 'alta' | 'media' | 'baixa';
       id_area?: string | null;
+      recorrente?: boolean;
+      repeticao_intervalo?: number;
+      repeticao_tipo?: RepeticaoTipo;
+      termino_tipo?: TerminoTipo;
+      termino_data?: string | null;
+      termino_ocorrencias?: number | null;
+      ocorrencias_realizadas?: number;
     }
   ) => {
     if (!user) return false;
@@ -182,6 +227,13 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         ...(data.prazo !== undefined && { prazo: data.prazo || null }),
         ...(data.prioridade !== undefined && { prioridade: data.prioridade }),
         ...(data.id_area !== undefined && { id_area: data.id_area || null }),
+        ...(data.recorrente !== undefined && { recorrente: data.recorrente }),
+        ...(data.repeticao_intervalo !== undefined && { repeticao_intervalo: data.repeticao_intervalo }),
+        ...(data.repeticao_tipo !== undefined && { repeticao_tipo: data.repeticao_tipo }),
+        ...(data.termino_tipo !== undefined && { termino_tipo: data.termino_tipo }),
+        ...(data.termino_data !== undefined && { termino_data: data.termino_data }),
+        ...(data.termino_ocorrencias !== undefined && { termino_ocorrencias: data.termino_ocorrencias }),
+        ...(data.ocorrencias_realizadas !== undefined && { ocorrencias_realizadas: data.ocorrencias_realizadas }),
         updated_at: new Date().toISOString(),
       };
 
@@ -208,6 +260,8 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const concluidaEm = newCompleted ? new Date().toISOString() : null;
 
     try {
+      const task = tasks.find((t) => t.id === id);
+
       // Atualização otimista local
       setTasks((prev) =>
         prev.map((t) => (t.id === id ? { ...t, concluida: newCompleted, concluida_em: concluidaEm } : t))
@@ -229,6 +283,78 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         throw updateErr;
       }
 
+      // Se estamos concluindo uma tarefa recorrente (false -> true)
+      if (newCompleted && task && task.recorrente) {
+        // 1. Calcular a PRÓXIMA data baseada no prazo atual somado ao repeticao_intervalo e repeticao_tipo
+        const baseDate = task.prazo ? new Date(task.prazo) : new Date();
+        const nextDate = isNaN(baseDate.getTime()) ? new Date() : new Date(baseDate.getTime());
+        const intervalo = Math.max(1, task.repeticao_intervalo || 1);
+        const tipo = task.repeticao_tipo || 'dia';
+
+        if (tipo === 'dia') {
+          nextDate.setDate(nextDate.getDate() + intervalo);
+        } else if (tipo === 'semana') {
+          nextDate.setDate(nextDate.getDate() + (intervalo * 7));
+        } else if (tipo === 'mes') {
+          nextDate.setMonth(nextDate.getMonth() + intervalo);
+        } else if (tipo === 'ano') {
+          nextDate.setFullYear(nextDate.getFullYear() + intervalo);
+        }
+
+        // 2. Validar condições de término:
+        let shouldCreateNext = true;
+
+        if (task.termino_tipo === 'data' && task.termino_data) {
+          const limitDate = new Date(task.termino_data);
+          limitDate.setHours(23, 59, 59, 999);
+          if (nextDate.getTime() > limitDate.getTime()) {
+            shouldCreateNext = false;
+          }
+        } else if (task.termino_tipo === 'ocorrencias' && task.termino_ocorrencias != null) {
+          const ocorrenciasRealizadas = task.ocorrencias_realizadas || 0;
+          if (ocorrenciasRealizadas + 1 >= task.termino_ocorrencias) {
+            shouldCreateNext = false;
+          }
+        }
+
+        // 3 e 4. Caso passe nas validações, criar uma CÓPIA com a nova data e regras preservadas
+        if (shouldCreateNext) {
+          const novaOcorrenciaPayload = {
+            id_usuario: user.id,
+            id_area: task.id_area || null,
+            titulo: task.titulo,
+            descricao: task.descricao || null,
+            prazo: nextDate.toISOString(),
+            prioridade: task.prioridade || 'media',
+            concluida: false,
+            concluida_em: null,
+            recorrente: true,
+            repeticao_intervalo: task.repeticao_intervalo || 1,
+            repeticao_tipo: task.repeticao_tipo || 'dia',
+            termino_tipo: task.termino_tipo || 'nunca',
+            termino_data: task.termino_data || null,
+            termino_ocorrencias: task.termino_ocorrencias || null,
+            ocorrencias_realizadas: (task.ocorrencias_realizadas || 0) + 1,
+          };
+
+          const { data: createdTask, error: insertCopyErr } = await supabase
+            .from('crm_tarefas')
+            .insert(novaOcorrenciaPayload)
+            .select()
+            .single();
+
+          if (!insertCopyErr && createdTask && task.subtarefas && task.subtarefas.length > 0) {
+            const subtasksPayload = task.subtarefas.map((st) => ({
+              id_tarefa: createdTask.id,
+              titulo: st.titulo,
+              concluida: false,
+            }));
+            await supabase.from('subtarefas').insert(subtasksPayload);
+          }
+        }
+      }
+
+      await fetchTasks();
       return true;
     } catch (err: unknown) {
       console.error('Erro ao marcar conclusão da tarefa:', err);

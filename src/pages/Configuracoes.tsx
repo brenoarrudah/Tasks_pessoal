@@ -39,6 +39,9 @@ export const Configuracoes: React.FC = () => {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const [cleaning, setCleaning] = useState(false);
+  const [cleanSuccess, setCleanSuccess] = useState<string | null>(null);
+
   // Normalização e extração de listas e tarefas de arquivos do Google Takeout
   const parseGoogleTasksJson = (jsonText: string, fallbackFileName: string): ParsedList[] => {
     let data: any;
@@ -284,6 +287,60 @@ export const Configuracoes: React.FC = () => {
     fileInputRef.current?.click();
   };
 
+  const handleCleanDuplicates = async () => {
+    if (!user) return;
+    setCleaning(true);
+    setCleanSuccess(null);
+    setError(null);
+
+    try {
+      const { data: userTasks, error: fetchErr } = await supabase
+        .from('crm_tarefas')
+        .select('id, titulo, id_area, created_at')
+        .eq('id_usuario', user.id)
+        .order('created_at', { ascending: false });
+
+      if (fetchErr) throw fetchErr;
+
+      if (!userTasks || userTasks.length === 0) {
+        setCleanSuccess('Nenhuma tarefa encontrada para limpeza.');
+        return;
+      }
+
+      const seen = new Set<string>();
+      const duplicateIds: string[] = [];
+
+      for (const t of userTasks) {
+        const key = `${t.id_area || 'no-area'}:::${t.titulo.trim().toLowerCase()}`;
+        if (seen.has(key)) {
+          duplicateIds.push(t.id);
+        } else {
+          seen.add(key);
+        }
+      }
+
+      if (duplicateIds.length === 0) {
+        setCleanSuccess('Nenhuma tarefa duplicada foi encontrada!');
+        return;
+      }
+
+      const { error: deleteErr } = await supabase
+        .from('crm_tarefas')
+        .delete()
+        .in('id', duplicateIds);
+
+      if (deleteErr) throw deleteErr;
+
+      await fetchTasks();
+      setCleanSuccess(`Limpeza concluída! Foram removidas ${duplicateIds.length} tarefa(s) duplicada(s) mantendo a versão mais recente.`);
+    } catch (err: unknown) {
+      console.error('Erro na limpeza de duplicadas:', err);
+      setError(err instanceof Error ? err.message : 'Falha ao executar limpeza de tarefas duplicadas.');
+    } finally {
+      setCleaning(false);
+    }
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in duration-200 pb-12">
       <div className="border-b border-zinc-800 pb-5">
@@ -438,6 +495,60 @@ export const Configuracoes: React.FC = () => {
               Para exportar seus dados do Google Tasks: acesse o <strong className="text-zinc-200">Google Takeout</strong> (<a href="https://takeout.google.com" target="_blank" rel="noreferrer" className="text-blue-400 hover:underline">takeout.google.com</a>), selecione apenas o <em className="text-zinc-300">Google Tasks</em>, escolha o formato JSON e extraia o arquivo.
             </li>
           </ul>
+        </div>
+      </div>
+
+      {/* Seção: Limpeza e Gestão de Tarefas */}
+      <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-2xl p-6 space-y-5 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-800/60 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
+              <Settings className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-base font-semibold text-zinc-100">Limpeza de Tarefas</h3>
+              <p className="text-xs text-zinc-400">
+                Remova tarefas duplicadas ou clonadas em excesso de importações antigas
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={handleCleanDuplicates}
+            disabled={cleaning}
+            className="w-full sm:w-auto bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-900 border border-zinc-700/80 text-zinc-200 hover:text-white font-medium px-4 py-2.5 rounded-xl transition-all cursor-pointer text-sm flex items-center justify-center gap-2 disabled:opacity-50"
+          >
+            {cleaning ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin text-amber-400" />
+                <span>Verificando duplicadas...</span>
+              </>
+            ) : (
+              <>
+                <span>Remover Tarefas Duplicadas</span>
+              </>
+            )}
+          </button>
+        </div>
+
+        {cleanSuccess && (
+          <div className="p-4 rounded-xl bg-emerald-950/40 border border-emerald-800/60 text-emerald-300 text-sm flex items-start gap-3 animate-in fade-in duration-200">
+            <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-semibold text-emerald-200">Resultado da Limpeza</p>
+              <p className="mt-0.5 text-xs text-emerald-300/90">{cleanSuccess}</p>
+            </div>
+          </div>
+        )}
+
+        <div className="rounded-xl bg-zinc-950/60 border border-zinc-800/60 p-4 space-y-2 text-xs text-zinc-400">
+          <p className="text-zinc-300 font-medium">Sobre a remoção de duplicadas:</p>
+          <p>
+            Esta ferramenta identifica tarefas que possuem o mesmo título e mesma área de foco, mantendo a mais recente e excluindo cópias antigas excedentes.
+          </p>
+          <p className="text-zinc-500">
+            Dica: Um script SQL avançado de limpeza também foi disponibilizado em <code className="text-zinc-300 bg-zinc-900 px-1 py-0.5 rounded">supabase/limpeza_tarefas.sql</code> para execução em massa via painel Supabase.
+          </p>
         </div>
       </div>
     </div>

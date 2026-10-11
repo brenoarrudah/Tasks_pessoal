@@ -50,6 +50,13 @@ CREATE TABLE IF NOT EXISTS public.crm_tarefas (
     prioridade TEXT CHECK (prioridade IN ('alta', 'media', 'baixa')) DEFAULT 'media',
     concluida BOOLEAN NOT NULL DEFAULT FALSE,
     concluida_em TIMESTAMPTZ,
+    recorrente BOOLEAN NOT NULL DEFAULT FALSE,
+    repeticao_intervalo INTEGER DEFAULT 1,
+    repeticao_tipo VARCHAR(20) DEFAULT 'dia',
+    termino_tipo VARCHAR(20) DEFAULT 'nunca',
+    termino_data DATE,
+    termino_ocorrencias INTEGER,
+    ocorrencias_realizadas INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

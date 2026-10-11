@@ -34,3 +34,8 @@ dist-ssr
 # Scratch scripts & temporary test files
 scratch_*
 scratch/
+
+# User import archives & temporary files
+*.zip
+takeout*
+**/.temp/

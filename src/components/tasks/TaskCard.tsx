@@ -10,7 +10,8 @@ import {
   Flag, 
   Clock,
   CheckSquare,
-  CornerDownRight
+  CornerDownRight,
+  RotateCcw
 } from 'lucide-react';
 import { Task, useTasks } from '@/contexts/TasksContext';
 import { useAreas } from '@/contexts/AreasContext';
@@ -158,6 +159,28 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) =>
               <span className="flex items-center gap-1.2 text-blue-400 font-medium bg-blue-500/10 px-2 py-0.5 rounded-lg border border-blue-500/20">
                 <Clock className="w-3.5 h-3.5" />
                 <span>{formattedPrazo}</span>
+              </span>
+            )}
+
+            {task.recorrente && (
+              <span 
+                title={`Repete a cada ${task.repeticao_intervalo || 1} ${task.repeticao_tipo || 'dia'}(s)`}
+                className="flex items-center gap-1.2 text-purple-400 font-medium bg-purple-500/10 px-2 py-0.5 rounded-lg border border-purple-500/20"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>
+                  {task.repeticao_intervalo && task.repeticao_intervalo > 1
+                    ? `A cada ${task.repeticao_intervalo} ${
+                        task.repeticao_tipo === 'mes' ? 'meses' : (task.repeticao_tipo || 'dia') + 's'
+                      }`
+                    : task.repeticao_tipo === 'semana'
+                    ? 'Semanal'
+                    : task.repeticao_tipo === 'mes'
+                    ? 'Mensal'
+                    : task.repeticao_tipo === 'ano'
+                    ? 'Anual'
+                    : 'Diário'}
+                </span>
               </span>
             )}
 
