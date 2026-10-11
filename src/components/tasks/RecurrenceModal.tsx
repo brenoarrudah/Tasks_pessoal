@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { X, Calendar, RotateCcw } from 'lucide-react';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { X, Calendar as CalendarIcon, RotateCcw } from 'lucide-react';
 import { RepeticaoTipo, TerminoTipo } from '@/contexts/TasksContext';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { cn } from '@/lib/utils';
 
 export interface RecurrenceConfig {
   recorrente: boolean;
@@ -41,7 +46,8 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
   const [tipo, setTipo] = useState<RepeticaoTipo>('dia');
   const [diasSemana, setDiasSemana] = useState<number[]>([]);
   const [terminoTipo, setTerminoTipo] = useState<TerminoTipo>('nunca');
-  const [terminoData, setTerminoData] = useState<string>('');
+  const [selectedTerminoDate, setSelectedTerminoDate] = useState<Date | undefined>(undefined);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [terminoOcorrencias, setTerminoOcorrencias] = useState<number>(1);
 
   useEffect(() => {
@@ -57,8 +63,21 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
       }
 
       setTerminoTipo(initialConfig?.termino_tipo || 'nunca');
-      setTerminoData(initialConfig?.termino_data || '');
+      
+      if (initialConfig?.termino_data) {
+        const parts = initialConfig.termino_data.split('-').map(Number);
+        if (parts.length === 3 && !isNaN(parts[0]) && !isNaN(parts[1]) && !isNaN(parts[2])) {
+          setSelectedTerminoDate(new Date(parts[0], parts[1] - 1, parts[2]));
+        } else {
+          const parsed = new Date(initialConfig.termino_data);
+          setSelectedTerminoDate(!isNaN(parsed.getTime()) ? parsed : undefined);
+        }
+      } else {
+        setSelectedTerminoDate(undefined);
+      }
+
       setTerminoOcorrencias(initialConfig?.termino_ocorrencias || 5);
+      setIsCalendarOpen(false);
     }
   }, [isOpen, initialConfig, initialStartDate]);
 
@@ -76,13 +95,17 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
 
   const handleConcluir = (e: React.FormEvent) => {
     e.preventDefault();
+    const formattedTerminoData = terminoTipo === 'data' && selectedTerminoDate
+      ? format(selectedTerminoDate, 'yyyy-MM-dd')
+      : null;
+
     onSave({
       recorrente: true,
       repeticao_intervalo: Math.max(1, Number(intervalo) || 1),
       repeticao_tipo: tipo,
       repeticao_dias_semana: tipo === 'semana' && diasSemana.length > 0 ? diasSemana : null,
       termino_tipo: terminoTipo,
-      termino_data: terminoTipo === 'data' && terminoData ? terminoData : null,
+      termino_data: formattedTerminoData,
       termino_ocorrencias: terminoTipo === 'ocorrencias' ? Math.max(1, Number(terminoOcorrencias) || 1) : null,
     });
     onClose();
@@ -186,7 +209,7 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
           {/* Seção 2: Início */}
           <div className="space-y-1.5 p-3 rounded-2xl bg-zinc-950/60 border border-zinc-800/60">
             <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-zinc-400">
-              <Calendar className="w-3.5 h-3.5 text-zinc-400" />
+              <CalendarIcon className="w-3.5 h-3.5 text-zinc-400" />
               <span>Início da repetição</span>
             </div>
             <p className="text-sm font-medium text-zinc-200 pl-5.5">
@@ -214,7 +237,7 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
                 <span className="text-zinc-200 group-hover:text-zinc-100">Nunca</span>
               </label>
 
-              {/* Opção 2: Em (Data limite) */}
+              {/* Opção 2: Em (Data limite com DatePicker) */}
               <div className="flex items-center gap-3">
                 <label className="flex items-center gap-3 cursor-pointer select-none text-sm group shrink-0">
                   <input
@@ -227,13 +250,71 @@ export const RecurrenceModal: React.FC<RecurrenceModalProps> = ({
                   />
                   <span className="text-zinc-200 group-hover:text-zinc-100">Em</span>
                 </label>
-                <input
-                  type="date"
-                  disabled={terminoTipo !== 'data'}
-                  value={terminoData}
-                  onChange={(e) => setTerminoData(e.target.value)}
-                  className="flex-1 bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-1.5 text-xs text-zinc-100 focus:outline-none focus:border-blue-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                />
+
+                <div className="flex-1 min-w-0">
+                  <Popover
+                    open={isCalendarOpen && terminoTipo === 'data'}
+                    onOpenChange={(open) => {
+                      if (terminoTipo === 'data') {
+                        setIsCalendarOpen(open);
+                      }
+                    }}
+                  >
+                    <PopoverTrigger asChild>
+                      <button
+                        type="button"
+                        disabled={terminoTipo !== 'data'}
+                        onClick={() => {
+                          if (terminoTipo === 'data') {
+                            setIsCalendarOpen(true);
+                          }
+                        }}
+                        className={cn(
+                          "w-full flex items-center justify-between bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-1.5 text-xs transition-colors text-left",
+                          terminoTipo === 'data'
+                            ? "hover:border-zinc-700 focus:outline-hidden focus:border-blue-500 cursor-pointer text-zinc-100"
+                            : "opacity-40 cursor-not-allowed text-zinc-500"
+                        )}
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <CalendarIcon className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+                          <span className={cn("truncate", selectedTerminoDate ? "text-zinc-100 font-medium" : "text-zinc-500")}>
+                            {selectedTerminoDate
+                              ? format(selectedTerminoDate, "dd/MM/yyyy", { locale: ptBR })
+                              : "Selecionar data"}
+                          </span>
+                        </div>
+
+                        {selectedTerminoDate && terminoTipo === 'data' && (
+                          <span
+                            role="button"
+                            tabIndex={0}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedTerminoDate(undefined);
+                            }}
+                            title="Remover data"
+                            className="p-0.5 rounded text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800 transition-colors ml-1"
+                          >
+                            <X className="w-3 h-3" />
+                          </span>
+                        )}
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-2 bg-zinc-950 border-zinc-800 shadow-2xl z-[70]" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={selectedTerminoDate}
+                        onSelect={(date) => {
+                          setSelectedTerminoDate(date);
+                          setIsCalendarOpen(false);
+                        }}
+                        locale={ptBR}
+                        autoFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
               </div>
 
               {/* Opção 3: Após (Ocorrências) */}

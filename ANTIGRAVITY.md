@@ -55,6 +55,7 @@ Gestor Pessoal de Tarefas, organização pessoal e produtividade. Aplicação we
 - **Etapa UI — Limpeza Visual do Dashboard (11/10/2026):** remoção da badge com a string de timezone (`America/Sao_Paulo`) no cabeçalho de "Tarefas do Dia", tornando a apresentação da data mais limpa e minimalista.
 - **Etapa Recorrência Semanal — Seleção de Dias da Semana Estilo Google Tasks (11/10/2026):** adicionada seleção múltipla de dias da semana (D, S, T, Q, Q, S, S) para recorrência semanal (`repeticao_dias_semana INTEGER[]`). Ao concluir uma tarefa recorrente com dias especificados, o sistema calcula inteligentemente a data do próximo dia selecionado dentro da semana atual ou avança para o ciclo seguinte considerando o intervalo configurado. Acompanha script de migração `supabase/migration_dias_semana.sql`.
 - **Etapa Normalização — Sequência Contínua e Re-indexação Automática das Áreas de Foco (11/10/2026):** implementada normalização automática no carregamento, movimentação (subir/descer) e exclusão de áreas de foco. O campo `ordem` agora é estritamente sequencial (1, 2, 3...) eliminando lacunas numéricas e re-indexando em tempo real no Supabase com atualização otimista na interface. Acompanha script SQL `supabase/normalizar_ordem_areas.sql`.
+- **Etapa UI — DatePicker no Término da Recorrência (11/10/2026):** substituição do input nativo de data no término da repetição ("Em") pelo componente `DatePicker` interativo (`Popover` + `Calendar` do Shadcn/UI), com formatação em `pt-BR`, suporte a desabilitação dinâmica e botão para limpar data.
 
 ## Próximos passos
 
