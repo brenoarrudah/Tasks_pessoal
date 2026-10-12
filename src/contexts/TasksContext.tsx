@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from './AuthContext';
+import { calculateNextRecurrenceDate } from '@/lib/dateUtils';
 
 export type RepeticaoTipo = 'dia' | 'semana' | 'mes' | 'ano';
 export type TerminoTipo = 'nunca' | 'data' | 'ocorrencias';
@@ -299,36 +300,11 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
       // Se estamos concluindo uma tarefa recorrente (false -> true)
       if (newCompleted && task && task.recorrente) {
-        // 1. Calcular a PRÓXIMA data baseada no prazo atual somado ao repeticao_intervalo e repeticao_tipo
-        const baseDate = task.prazo ? new Date(task.prazo) : new Date();
-        const nextDate = isNaN(baseDate.getTime()) ? new Date() : new Date(baseDate.getTime());
-        const intervalo = Math.max(1, task.repeticao_intervalo || 1);
-        const tipo = task.repeticao_tipo || 'dia';
-
-        if (tipo === 'dia') {
-          nextDate.setDate(nextDate.getDate() + intervalo);
-        } else if (tipo === 'semana') {
-          const diasSemana = (task.repeticao_dias_semana || []).slice().sort((a, b) => a - b);
-          if (diasSemana.length > 0) {
-            const currentDayOfWeek = baseDate.getDay();
-            const nextDayInSameWeek = diasSemana.find((d) => d > currentDayOfWeek);
-
-            if (nextDayInSameWeek !== undefined) {
-              const daysToAdd = nextDayInSameWeek - currentDayOfWeek;
-              nextDate.setDate(nextDate.getDate() + daysToAdd);
-            } else {
-              const firstDay = diasSemana[0];
-              const daysToAdd = (7 - currentDayOfWeek) + firstDay + ((intervalo - 1) * 7);
-              nextDate.setDate(nextDate.getDate() + daysToAdd);
-            }
-          } else {
-            nextDate.setDate(nextDate.getDate() + (intervalo * 7));
-          }
-        } else if (tipo === 'mes') {
-          nextDate.setMonth(nextDate.getMonth() + intervalo);
-        } else if (tipo === 'ano') {
-          nextDate.setFullYear(nextDate.getFullYear() + intervalo);
-        }
+        // 1. Calcular a PRÓXIMA data com catch-up automático anti-bola de neve:
+        // - Calcula a próxima data matematicamente (prazo atual + intervalo)
+        // - Se a data calculada estiver no passado, ignora dias perdidos e projeta para hoje (ou próxima ocorrência válida)
+        // - Para repeticao_tipo === 'dia', garante: novoPrazo = max(prazoCalculado, dataAtual)
+        const nextDate = calculateNextRecurrenceDate(task);
 
         // 2. Validar condições de término:
         let shouldCreateNext = true;
