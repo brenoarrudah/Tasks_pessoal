@@ -39,11 +39,36 @@ CREATE TABLE IF NOT EXISTS public.areas_foco (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- 5. Tabela de crm_tarefas
+-- 5. Tabela de metas_macro (Objetivos de Longo Prazo)
+CREATE TABLE IF NOT EXISTS public.metas_macro (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_usuario UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    titulo TEXT NOT NULL,
+    descricao TEXT,
+    progresso_atual INTEGER NOT NULL DEFAULT 0,
+    progresso_alvo INTEGER NOT NULL DEFAULT 100,
+    status TEXT NOT NULL DEFAULT 'em_andamento',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- 6. Tabela de gamificacao_perfil (Níveis, XP, Moedas e Streaks)
+CREATE TABLE IF NOT EXISTS public.gamificacao_perfil (
+    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    nivel_atual INTEGER NOT NULL DEFAULT 1,
+    xp_acumulado INTEGER NOT NULL DEFAULT 0,
+    moedas INTEGER NOT NULL DEFAULT 0,
+    streak_atual INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- 7. Tabela de crm_tarefas
 CREATE TABLE IF NOT EXISTS public.crm_tarefas (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     id_usuario UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     id_area UUID REFERENCES public.areas_foco(id) ON DELETE SET NULL,
+    id_meta_vinculada UUID REFERENCES public.metas_macro(id) ON DELETE SET NULL,
     titulo TEXT NOT NULL,
     descricao TEXT,
     prazo TIMESTAMPTZ,
@@ -58,11 +83,12 @@ CREATE TABLE IF NOT EXISTS public.crm_tarefas (
     termino_data DATE,
     termino_ocorrencias INTEGER,
     ocorrencias_realizadas INTEGER NOT NULL DEFAULT 0,
+    recompensa_xp INTEGER NOT NULL DEFAULT 10,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- 6. Tabela de subtarefas
+-- 8. Tabela de subtarefas
 CREATE TABLE IF NOT EXISTS public.subtarefas (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     id_tarefa UUID NOT NULL REFERENCES public.crm_tarefas(id) ON DELETE CASCADE,
@@ -71,7 +97,7 @@ CREATE TABLE IF NOT EXISTS public.subtarefas (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- 7. Tabela de logs_sistema
+-- 9. Tabela de logs_sistema
 CREATE TABLE IF NOT EXISTS public.logs_sistema (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     id_usuario UUID REFERENCES auth.users(id) ON DELETE SET NULL,
@@ -90,6 +116,8 @@ CREATE INDEX IF NOT EXISTS idx_crm_tarefas_id_usuario ON public.crm_tarefas(id_u
 CREATE INDEX IF NOT EXISTS idx_crm_tarefas_id_area ON public.crm_tarefas(id_area);
 CREATE INDEX IF NOT EXISTS idx_crm_tarefas_prazo ON public.crm_tarefas(prazo);
 CREATE INDEX IF NOT EXISTS idx_crm_tarefas_concluida ON public.crm_tarefas(concluida);
+CREATE INDEX IF NOT EXISTS idx_crm_tarefas_id_meta ON public.crm_tarefas(id_meta_vinculada);
+CREATE INDEX IF NOT EXISTS idx_metas_macro_id_usuario ON public.metas_macro(id_usuario);
 CREATE INDEX IF NOT EXISTS idx_subtarefas_id_tarefa ON public.subtarefas(id_tarefa);
 CREATE INDEX IF NOT EXISTS idx_logs_sistema_id_usuario ON public.logs_sistema(id_usuario);
 
@@ -204,6 +232,10 @@ BEGIN
     )
     ON CONFLICT DO NOTHING;
 
+    INSERT INTO public.gamificacao_perfil (id, nivel_atual, xp_acumulado, moedas, streak_atual)
+    VALUES (NEW.id, 1, 0, 0, 0)
+    ON CONFLICT DO NOTHING;
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -219,6 +251,8 @@ ALTER TABLE public.configuracoes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.areas_foco ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.crm_tarefas ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.subtarefas ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.metas_macro ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.gamificacao_perfil ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.logs_sistema ENABLE ROW LEVEL SECURITY;
 
 -- 12. Politicas de RLS (Row Level Security)
@@ -331,7 +365,35 @@ DROP POLICY IF EXISTS "logs_sistema_select_policy" ON public.logs_sistema;
 CREATE POLICY "logs_sistema_select_policy" ON public.logs_sistema
     FOR SELECT USING (auth.uid() = id_usuario);
     
-DROP POLICY IF EXISTS "logs_sistema_insert_policy" ON public.logs_sistema;
+-- Politicas para gamificacao_perfil
+DROP POLICY IF EXISTS "gamificacao_perfil_select_policy" ON public.gamificacao_perfil;
+CREATE POLICY "gamificacao_perfil_select_policy" ON public.gamificacao_perfil
+    FOR SELECT USING (auth.uid() = id);
+
+DROP POLICY IF EXISTS "gamificacao_perfil_insert_policy" ON public.gamificacao_perfil;
+CREATE POLICY "gamificacao_perfil_insert_policy" ON public.gamificacao_perfil
+    FOR INSERT WITH CHECK (auth.uid() = id);
+
+DROP POLICY IF EXISTS "gamificacao_perfil_update_policy" ON public.gamificacao_perfil;
+CREATE POLICY "gamificacao_perfil_update_policy" ON public.gamificacao_perfil
+    FOR UPDATE USING (auth.uid() = id);
+
+-- Politicas para metas_macro
+DROP POLICY IF EXISTS "metas_macro_select_policy" ON public.metas_macro;
+CREATE POLICY "metas_macro_select_policy" ON public.metas_macro
+    FOR SELECT USING (auth.uid() = id_usuario);
+
+DROP POLICY IF EXISTS "metas_macro_insert_policy" ON public.metas_macro;
+CREATE POLICY "metas_macro_insert_policy" ON public.metas_macro
+    FOR INSERT WITH CHECK (auth.uid() = id_usuario);
+
+DROP POLICY IF EXISTS "metas_macro_update_policy" ON public.metas_macro;
+CREATE POLICY "metas_macro_update_policy" ON public.metas_macro
+    FOR UPDATE USING (auth.uid() = id_usuario);
+
+DROP POLICY IF EXISTS "metas_macro_delete_policy" ON public.metas_macro;
+CREATE POLICY "metas_macro_delete_policy" ON public.metas_macro
+    FOR DELETE USING (auth.uid() = id_usuario);
 
 -- 13. Seed inicial de configuracao padrao
 INSERT INTO public.configuracoes (id_usuario, nome_negocio, fuso_horario, tema)

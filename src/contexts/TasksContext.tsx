@@ -4,39 +4,19 @@ import { useAuth } from './AuthContext';
 import { calculateNextRecurrenceDate } from '@/lib/dateUtils';
 import { format } from 'date-fns';
 
-export type RepeticaoTipo = 'dia' | 'semana' | 'mes' | 'ano';
-export type TerminoTipo = 'nunca' | 'data' | 'ocorrencias';
-
-export interface Subtask {
-  id: string;
-  id_tarefa: string;
-  titulo: string;
-  concluida: boolean;
-  created_at: string;
-}
-
-export interface Task {
-  id: string;
-  id_usuario: string;
-  id_area: string | null;
-  titulo: string;
-  descricao: string | null;
-  prazo: string | null;
-  prioridade: 'alta' | 'media' | 'baixa';
-  concluida: boolean;
-  concluida_em: string | null;
-  recorrente?: boolean;
-  repeticao_intervalo?: number;
-  repeticao_tipo?: RepeticaoTipo;
-  repeticao_dias_semana?: number[] | null;
-  termino_tipo?: TerminoTipo;
-  termino_data?: string | null;
-  termino_ocorrencias?: number | null;
-  ocorrencias_realizadas?: number;
-  created_at: string;
-  updated_at: string;
-  subtarefas?: Subtask[];
-}
+export type {
+  RepeticaoTipo,
+  TerminoTipo,
+  PrioridadeTipo,
+  MetaStatus,
+  GamificacaoPerfil,
+  MetaMacro,
+  Subtask,
+  Task,
+  Tarefa,
+  Subtarefa,
+} from '@/types';
+import type { Task, Subtask, RepeticaoTipo, TerminoTipo } from '@/types';
 
 interface TasksContextType {
   tasks: Task[];
@@ -57,6 +37,8 @@ interface TasksContextType {
     termino_data?: string | null;
     termino_ocorrencias?: number | null;
     ocorrencias_realizadas?: number;
+    id_meta_vinculada?: string | null;
+    recompensa_xp?: number;
   }) => Promise<Task | null>;
   updateTask: (
     id: string,
@@ -74,6 +56,8 @@ interface TasksContextType {
       termino_data?: string | null;
       termino_ocorrencias?: number | null;
       ocorrencias_realizadas?: number;
+      id_meta_vinculada?: string | null;
+      recompensa_xp?: number;
     }
   ) => Promise<boolean>;
   toggleTaskComplete: (id: string, currentCompleted: boolean) => Promise<boolean>;
@@ -192,6 +176,8 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         termino_data: data.termino_data ?? null,
         termino_ocorrencias: data.termino_ocorrencias ?? null,
         ocorrencias_realizadas: data.ocorrencias_realizadas ?? 0,
+        id_meta_vinculada: data.id_meta_vinculada || null,
+        recompensa_xp: data.recompensa_xp ?? 10,
       };
 
       const { data: inserted, error: insertErr } = await supabase
@@ -250,6 +236,8 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         ...(data.termino_data !== undefined && { termino_data: data.termino_data }),
         ...(data.termino_ocorrencias !== undefined && { termino_ocorrencias: data.termino_ocorrencias }),
         ...(data.ocorrencias_realizadas !== undefined && { ocorrencias_realizadas: data.ocorrencias_realizadas }),
+        ...(data.id_meta_vinculada !== undefined && { id_meta_vinculada: data.id_meta_vinculada || null }),
+        ...(data.recompensa_xp !== undefined && { recompensa_xp: data.recompensa_xp }),
         updated_at: new Date().toISOString(),
       };
 
@@ -342,6 +330,8 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             termino_data: task.termino_data || null,
             termino_ocorrencias: task.termino_ocorrencias || null,
             ocorrencias_realizadas: (task.ocorrencias_realizadas || 0) + 1,
+            id_meta_vinculada: task.id_meta_vinculada || null,
+            recompensa_xp: task.recompensa_xp ?? 10,
           };
 
           const { data: createdTask, error: insertCopyErr } = await supabase

@@ -19,6 +19,8 @@ Gestor Pessoal de Tarefas, organização pessoal e produtividade. Aplicação we
 - `areas_foco`: Listas e categorias temáticas de organização (ex: Distrital, Clube Águia, M. Jovem).
 - `crm_tarefas`: Demandas centrais com prazo, status de conclusão e nível de prioridade.
 - `subtarefas`: Itens de detalhamento atrelados a cada tarefa principal.
+- `metas_macro`: Objetivos estratégicos de longo prazo com metas de progresso e status.
+- `gamificacao_perfil`: Estatísticas de produtividade, níveis de usuário, XP acumulado, moedas e hábitos (streaks).
 - `logs_sistema`: Auditoria e rastreio de alterações de dados.
 
 ## Estrutura de páginas e rotas
@@ -60,6 +62,7 @@ Gestor Pessoal de Tarefas, organização pessoal e produtividade. Aplicação we
 - **Etapa Recorrência — Prevenção de Efeito Bola de Neve (Catch-Up Automático) (12/10/2026):** implementação de regra de catch-up inteligente na conclusão de tarefas recorrentes em `toggleTaskComplete`. Quando uma tarefa atrasada é concluída, o cálculo projeta a nova data diretamente para a data atual (ou próxima ocorrência válida a partir de hoje), saltando dias perdidos e aplicando `novoPrazo = max(prazoCalculado, dataAtual)` para evitar acúmulo de tarefas no passado.
 - **Etapa Timezone — Blindagem Contra Recuo de Fuso Horário no Prazo (12/10/2026):** substituição da conversão UTC (`toISOString()`) pela formatação estrita de data local (`format(data, 'yyyy-MM-dd')` via `date-fns`) no payload de criação e edição de tarefas em `TaskModal` e `TasksContext`. Adicionado utilitário `parseLocalDateSaoPaulo` para neutralizar o deslocamento de timezone (UTC-3) na leitura, filtragem e renderização dos cartões de tarefas, impedindo que prazos selecionados recuem para as 21:00 do dia anterior.
 - **Etapa Segurança — Redefinição de Senha Autenticada (12/10/2026):** adicionado campo e botão de alteração de senha no card de Perfil do Usuário em `/configuracoes` utilizando `supabase.auth.updateUser({ password })`. Permite que usuários autenticados (inclusive após recuperação via Magic Link) configurem ou alterem sua senha para acesso em múltiplos dispositivos, com feedback visual em tempo real e toast flutuante de sucesso.
+- **Etapa Gamificação 1 — Arquitetura de Dados para Gamificação e Metas Macro (12/10/2026):** criação das tabelas `gamificacao_perfil` e `metas_macro` com isolamento RLS estrito por usuário, suporte a metas vinculadas (`id_meta_vinculada`) e recompensas de XP (`recompensa_xp`) em `crm_tarefas`, script de migração `supabase/migration_gamificacao_metas.sql` e centralização de tipagens TypeScript em `src/types/database.ts`.
 
 ## Próximos passos
 

@@ -1,0 +1,71 @@
+export type RepeticaoTipo = 'dia' | 'semana' | 'mes' | 'ano';
+export type TerminoTipo = 'nunca' | 'data' | 'ocorrencias';
+export type PrioridadeTipo = 'alta' | 'media' | 'baixa';
+export type MetaStatus = 'em_andamento' | 'concluida' | 'pausada' | 'cancelada';
+
+/**
+ * Perfil de Gamificação do Usuário
+ * Controla níveis, progressão de experiência (XP), economia virtual e hábitos/streaks
+ */
+export interface GamificacaoPerfil {
+  id: string; // Referência a auth.users(id)
+  nivel_atual: number;
+  xp_acumulado: number;
+  moedas: number;
+  streak_atual: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+/**
+ * Meta de Longo Prazo / Objetivo Macro
+ * Agrupa demandas e direciona a progressão das tarefas diárias
+ */
+export interface MetaMacro {
+  id: string;
+  id_usuario: string;
+  titulo: string;
+  descricao?: string | null;
+  progresso_atual: number;
+  progresso_alvo: number;
+  status: MetaStatus | string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface Subtask {
+  id: string;
+  id_tarefa: string;
+  titulo: string;
+  concluida: boolean;
+  created_at: string;
+}
+
+export interface Task {
+  id: string;
+  id_usuario: string;
+  id_area: string | null;
+  titulo: string;
+  descricao: string | null;
+  prazo: string | null;
+  prioridade: PrioridadeTipo;
+  concluida: boolean;
+  concluida_em: string | null;
+  recorrente?: boolean;
+  repeticao_intervalo?: number;
+  repeticao_tipo?: RepeticaoTipo;
+  repeticao_dias_semana?: number[] | null;
+  termino_tipo?: TerminoTipo;
+  termino_data?: string | null;
+  termino_ocorrencias?: number | null;
+  ocorrencias_realizadas?: number;
+  id_meta_vinculada?: string | null;
+  recompensa_xp?: number;
+  created_at: string;
+  updated_at: string;
+  subtarefas?: Subtask[];
+}
+
+// Aliases em português para interoperabilidade
+export type Tarefa = Task;
+export type Subtarefa = Subtask;
