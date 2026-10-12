@@ -15,6 +15,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { RecurrenceModal, RecurrenceConfig } from './RecurrenceModal';
+import { parseLocalDateSaoPaulo } from '@/lib/dateUtils';
 
 interface TaskModalProps {
   isOpen: boolean;
@@ -61,7 +62,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
       setTitulo(taskToEdit.titulo);
       setDescricao(taskToEdit.descricao || '');
       if (taskToEdit.prazo) {
-        const d = new Date(taskToEdit.prazo);
+        const d = parseLocalDateSaoPaulo(taskToEdit.prazo);
         setSelectedDate(!isNaN(d.getTime()) ? d : undefined);
       } else {
         setSelectedDate(undefined);
@@ -133,12 +134,11 @@ export const TaskModal: React.FC<TaskModalProps> = ({
       setLoading(true);
       setError(null);
 
-      let formattedPrazo = selectedDate ? selectedDate.toISOString() : null;
-
-      // Se for recorrente e não possuir prazo definido, atribui a data atual (hoje) automaticamente
-      if (recurrence.recorrente && !formattedPrazo) {
-        formattedPrazo = new Date().toISOString();
-      }
+      // A Regra: Se o campo prazo tiver uma data válida (seja a do DatePicker ou a data de fallback de hoje),
+      // extrair a data local e formatá-la estritamente como 'YYYY-MM-DD' sem toISOString() para impedir recuo UTC
+      const prazoFormatado = selectedDate
+        ? format(selectedDate, 'yyyy-MM-dd')
+        : (recurrence.recorrente ? format(new Date(), 'yyyy-MM-dd') : null);
 
       const recurrenceData = {
         recorrente: recurrence.recorrente,
@@ -154,7 +154,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
         await updateTask(taskToEdit.id, {
           titulo: titulo.trim(),
           descricao: descricao.trim() || null,
-          prazo: formattedPrazo,
+          prazo: prazoFormatado,
           prioridade,
           id_area: idArea || null,
           ...recurrenceData,
@@ -163,7 +163,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
         await createTask({
           titulo: titulo.trim(),
           descricao: descricao.trim() || undefined,
-          prazo: formattedPrazo,
+          prazo: prazoFormatado,
           prioridade,
           id_area: idArea || null,
           ...recurrenceData,
@@ -415,7 +415,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
         onClose={() => setIsRecurrenceModalOpen(false)}
         onSave={(config) => setRecurrence(config)}
         initialConfig={recurrence}
-        initialStartDate={selectedDate ? selectedDate.toISOString() : null}
+        initialStartDate={selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null}
       />
     </>
   );

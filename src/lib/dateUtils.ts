@@ -16,10 +16,21 @@ export function getTodaySaoPauloString(): string {
   return getSaoPauloDateString(new Date());
 }
 
+export function parseLocalDateSaoPaulo(dateStr: string): Date {
+  const match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (match) {
+    const y = Number(match[1]);
+    const m = Number(match[2]) - 1;
+    const d = Number(match[3]);
+    return new Date(y, m, d, 12, 0, 0); // Meio-dia local para blindar contra deslocamento de timezone
+  }
+  return new Date(dateStr);
+}
+
 export function isTodaySaoPaulo(dateStr: string | null): boolean {
   if (!dateStr) return false;
   try {
-    const taskDate = new Date(dateStr);
+    const taskDate = parseLocalDateSaoPaulo(dateStr);
     return getSaoPauloDateString(taskDate) === getTodaySaoPauloString();
   } catch (e) {
     console.error('Erro ao formatar data:', e);
@@ -30,7 +41,7 @@ export function isTodaySaoPaulo(dateStr: string | null): boolean {
 export function isOverdueSaoPaulo(dateStr: string | null): boolean {
   if (!dateStr) return false;
   try {
-    const taskDate = new Date(dateStr);
+    const taskDate = parseLocalDateSaoPaulo(dateStr);
     return getSaoPauloDateString(taskDate) < getTodaySaoPauloString();
   } catch (e) {
     console.error('Erro ao formatar data:', e);
@@ -66,7 +77,7 @@ export interface RecurrenceCalculationParams {
  * 4. Para tarefas diárias ('dia'), novoPrazo = max(prazoCalculado, dataAtual).
  */
 export function calculateNextRecurrenceDate(params: RecurrenceCalculationParams): Date {
-  const baseDate = params.prazo ? new Date(params.prazo) : new Date();
+  const baseDate = params.prazo ? parseLocalDateSaoPaulo(params.prazo) : new Date();
   const nextDate = isNaN(baseDate.getTime()) ? new Date() : new Date(baseDate.getTime());
   const intervalo = Math.max(1, params.repeticao_intervalo || 1);
   const tipo = params.repeticao_tipo || 'dia';

@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import { supabase } from '@/lib/supabase';
 import { useAuth } from './AuthContext';
 import { calculateNextRecurrenceDate } from '@/lib/dateUtils';
+import { format } from 'date-fns';
 
 export type RepeticaoTipo = 'dia' | 'semana' | 'mes' | 'ano';
 export type TerminoTipo = 'nunca' | 'data' | 'ocorrencias';
@@ -173,7 +174,7 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     try {
       const isRecorrente = data.recorrente ?? false;
-      const dataPrazo = (isRecorrente && !data.prazo) ? new Date().toISOString() : (data.prazo || null);
+      const dataPrazo = (isRecorrente && !data.prazo) ? format(new Date(), 'yyyy-MM-dd') : (data.prazo || null);
 
       const payload = {
         id_usuario: user.id,
@@ -232,7 +233,7 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       let prazoToUpdate = data.prazo;
       if (data.recorrente === true && !prazoToUpdate) {
-        prazoToUpdate = new Date().toISOString();
+        prazoToUpdate = format(new Date(), 'yyyy-MM-dd');
       }
 
       const payload = {
@@ -329,7 +330,7 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             id_area: task.id_area || null,
             titulo: task.titulo,
             descricao: task.descricao || null,
-            prazo: nextDate.toISOString(),
+            prazo: format(nextDate, 'yyyy-MM-dd'),
             prioridade: task.prioridade || 'media',
             concluida: false,
             concluida_em: null,

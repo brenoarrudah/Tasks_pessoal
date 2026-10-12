@@ -17,6 +17,7 @@ import { Task, useTasks } from '@/contexts/TasksContext';
 import { useAreas } from '@/contexts/AreasContext';
 import { AreaIcon } from '@/components/areas/AreaIcon';
 import { cn } from '@/lib/utils';
+import { parseLocalDateSaoPaulo } from '@/lib/dateUtils';
 
 interface TaskCardProps {
   task: Task;
@@ -78,15 +79,24 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) =>
     },
   }[task.prioridade || 'media'];
 
-  // Formatação da data de vencimento
-  const formattedPrazo = task.prazo
-    ? new Date(task.prazo).toLocaleString('pt-BR', {
+  // Formatação da data de vencimento (blindagem contra recuo UTC)
+  const formattedPrazo = (() => {
+    if (!task.prazo) return null;
+    const date = parseLocalDateSaoPaulo(task.prazo);
+    const isDateOnly = /^\d{4}-\d{2}-\d{2}$/.test(task.prazo) || task.prazo.includes('T00:00:00');
+    if (isDateOnly) {
+      return date.toLocaleDateString('pt-BR', {
         day: '2-digit',
         month: 'short',
-        hour: '2-digit',
-        minute: '2-digit',
-      })
-    : null;
+      });
+    }
+    return date.toLocaleString('pt-BR', {
+      day: '2-digit',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  })();
 
   return (
     <div
