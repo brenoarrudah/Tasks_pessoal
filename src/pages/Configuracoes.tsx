@@ -11,7 +11,10 @@ import {
   Info,
   Pencil,
   Check,
-  X
+  X,
+  Lock,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAreas } from '@/contexts/AreasContext';
@@ -51,6 +54,13 @@ export const Configuracoes: React.FC = () => {
   const [isSavingName, setIsSavingName] = useState(false);
   const [profileToast, setProfileToast] = useState<string | null>(null);
   const [profileError, setProfileError] = useState<string | null>(null);
+
+  // Estados para redefinição de senha autenticada
+  const [novaSenha, setNovaSenha] = useState('');
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const currentDisplayName = profile?.nome || user?.user_metadata?.full_name || 'Usuário Gestor';
 
@@ -114,6 +124,45 @@ export const Configuracoes: React.FC = () => {
       setProfileError(err instanceof Error ? err.message : 'Falha ao atualizar o nome.');
     } finally {
       setIsSavingName(false);
+    }
+  };
+
+  const handleAtualizarSenha = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const senhaLimpa = novaSenha.trim();
+    if (!senhaLimpa) {
+      setPasswordError('Digite a nova senha.');
+      return;
+    }
+
+    if (senhaLimpa.length < 6) {
+      setPasswordError('A senha deve conter no mínimo 6 caracteres.');
+      return;
+    }
+
+    try {
+      setIsUpdatingPassword(true);
+      setPasswordError(null);
+      setPasswordSuccess(null);
+
+      const { error: updateErr } = await supabase.auth.updateUser({
+        password: senhaLimpa,
+      });
+
+      if (updateErr) throw updateErr;
+
+      setNovaSenha('');
+      const successMsg = 'Senha atualizada com sucesso! Pode utilizar esta senha para aceder noutros dispositivos.';
+      setPasswordSuccess(successMsg);
+      setProfileToast(successMsg);
+      setTimeout(() => {
+        setProfileToast(null);
+      }, 5000);
+    } catch (err: unknown) {
+      console.error('Erro ao atualizar senha:', err);
+      setPasswordError(err instanceof Error ? err.message : 'Falha ao atualizar a senha.');
+    } finally {
+      setIsUpdatingPassword(false);
     }
   };
 
@@ -506,6 +555,69 @@ export const Configuracoes: React.FC = () => {
             <div>
               <span className="text-xs font-medium text-zinc-400 block uppercase">E-mail</span>
               <span className="text-zinc-200 font-medium">{user?.email}</span>
+            </div>
+
+            {/* Seção Alterar Senha / Segurança */}
+            <div className="pt-3 border-t border-zinc-800/80 space-y-2">
+              <div className="flex items-center gap-1.5">
+                <Lock className="w-3.5 h-3.5 text-zinc-400" />
+                <span className="text-xs font-medium text-zinc-400 uppercase">
+                  Segurança / Alterar Senha
+                </span>
+              </div>
+              <form onSubmit={handleAtualizarSenha} className="space-y-2">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                  <div className="relative flex-1">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      value={novaSenha}
+                      onChange={(e) => {
+                        setNovaSenha(e.target.value);
+                        setPasswordError(null);
+                        setPasswordSuccess(null);
+                      }}
+                      disabled={isUpdatingPassword}
+                      placeholder="Digite a nova senha"
+                      className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-1.5 pr-9 text-zinc-100 text-sm focus:outline-hidden focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      tabIndex={-1}
+                      title={showPassword ? "Ocultar senha" : "Ver senha"}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors p-0.5 cursor-pointer"
+                    >
+                      {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={isUpdatingPassword || !novaSenha.trim()}
+                    className="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white text-xs font-medium transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5 shrink-0 shadow-xs"
+                  >
+                    {isUpdatingPassword ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Atualizando...</span>
+                      </>
+                    ) : (
+                      <span>Atualizar Senha</span>
+                    )}
+                  </button>
+                </div>
+                {passwordError && (
+                  <p className="text-xs text-red-400 flex items-center gap-1.5 pt-0.5">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                    <span>{passwordError}</span>
+                  </p>
+                )}
+                {passwordSuccess && (
+                  <p className="text-xs text-emerald-400 flex items-center gap-1.5 pt-0.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                    <span>{passwordSuccess}</span>
+                  </p>
+                )}
+              </form>
             </div>
           </div>
         </div>
