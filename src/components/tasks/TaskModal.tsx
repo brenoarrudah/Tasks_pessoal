@@ -7,7 +7,8 @@ import {
   Calendar as CalendarIcon, 
   Layers, 
   Flag, 
-  RotateCcw 
+  RotateCcw,
+  Clock
 } from 'lucide-react';
 import { useTasks, Task } from '@/contexts/TasksContext';
 import { useAreas } from '@/contexts/AreasContext';
@@ -46,6 +47,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   const [titulo, setTitulo] = useState('');
   const [descricao, setDescricao] = useState('');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [horario, setHorario] = useState<string>('');
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [prioridade, setPrioridade] = useState<'alta' | 'media' | 'baixa'>('media');
   const [idArea, setIdArea] = useState<string>('');
@@ -67,6 +69,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
       } else {
         setSelectedDate(undefined);
       }
+      setHorario(taskToEdit.horario || '');
       setPrioridade(taskToEdit.prioridade || 'media');
       setIdArea(taskToEdit.id_area || '');
       setRecurrence({
@@ -82,6 +85,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
       setTitulo('');
       setDescricao('');
       setSelectedDate(undefined);
+      setHorario('');
       setPrioridade('media');
       setIdArea(defaultAreaId || (areas.length > 0 ? areas[0].id : ''));
       setRecurrence(defaultRecurrence);
@@ -155,6 +159,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
           titulo: titulo.trim(),
           descricao: descricao.trim() || null,
           prazo: prazoFormatado,
+          horario: horario.trim() || null,
           prioridade,
           id_area: idArea || null,
           ...recurrenceData,
@@ -164,6 +169,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
           titulo: titulo.trim(),
           descricao: descricao.trim() || undefined,
           prazo: prazoFormatado,
+          horario: horario.trim() || null,
           prioridade,
           id_area: idArea || null,
           ...recurrenceData,
@@ -288,57 +294,85 @@ export const TaskModal: React.FC<TaskModalProps> = ({
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300 mb-1.5 flex items-center gap-1.5">
                   <CalendarIcon className="w-3.5 h-3.5 text-zinc-400" />
-                  Prazo / Vencimento (Opcional)
+                  Prazo e Horário (Opcionais)
                 </label>
 
-                <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-                  <PopoverTrigger asChild>
-                    <button
-                      type="button"
-                      className={cn(
-                        "w-full flex items-center justify-between bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm transition-all text-left cursor-pointer",
-                        "hover:border-zinc-700 focus:outline-hidden focus:border-blue-500 focus:ring-1 focus:ring-blue-500",
-                        !selectedDate && "text-zinc-500"
-                      )}
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <CalendarIcon className="w-4 h-4 text-zinc-400 shrink-0" />
-                        <span className={cn("truncate", selectedDate ? "text-zinc-100 font-medium" : "text-zinc-500")}>
-                          {selectedDate
-                            ? format(selectedDate, "d 'de' MMMM 'de' yyyy", { locale: ptBR })
-                            : "Selecione uma data"}
-                        </span>
-                      </div>
-
-                      {selectedDate && (
-                        <span
-                          role="button"
-                          tabIndex={0}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedDate(undefined);
-                          }}
-                          title="Remover data"
-                          className="p-1 rounded-lg text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <div className="sm:col-span-2">
+                    <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+                      <PopoverTrigger asChild>
+                        <button
+                          type="button"
+                          className={cn(
+                            "w-full flex items-center justify-between bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm transition-all text-left cursor-pointer",
+                            "hover:border-zinc-700 focus:outline-hidden focus:border-blue-500 focus:ring-1 focus:ring-blue-500",
+                            !selectedDate && "text-zinc-500"
+                          )}
                         >
-                          <X className="w-3.5 h-3.5" />
-                        </span>
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <CalendarIcon className="w-4 h-4 text-zinc-400 shrink-0" />
+                            <span className={cn("truncate", selectedDate ? "text-zinc-100 font-medium" : "text-zinc-500")}>
+                              {selectedDate
+                                ? format(selectedDate, "d 'de' MMMM 'de' yyyy", { locale: ptBR })
+                                : "Selecione uma data"}
+                            </span>
+                          </div>
+
+                          {selectedDate && (
+                            <span
+                              role="button"
+                              tabIndex={0}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedDate(undefined);
+                              }}
+                              title="Remover data"
+                              className="p-1 rounded-lg text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </span>
+                          )}
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-2 bg-zinc-950 border-zinc-800 shadow-2xl" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={selectedDate}
+                          onSelect={(date) => {
+                            setSelectedDate(date);
+                            setIsCalendarOpen(false);
+                          }}
+                          locale={ptBR}
+                          autoFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  {/* Input de Horário Opcional */}
+                  <div className="relative">
+                    <div className="flex items-center bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-sm hover:border-zinc-700 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-colors h-full">
+                      <Clock className="w-4 h-4 text-zinc-400 shrink-0 mr-2" />
+                      <input
+                        type="time"
+                        value={horario}
+                        onChange={(e) => setHorario(e.target.value)}
+                        title="Definir horário (opcional)"
+                        className="w-full bg-transparent text-zinc-100 text-sm focus:outline-hidden [color-scheme:dark] cursor-pointer"
+                      />
+                      {horario && (
+                        <button
+                          type="button"
+                          onClick={() => setHorario('')}
+                          title="Limpar horário"
+                          className="p-0.5 rounded text-zinc-500 hover:text-zinc-200 transition-colors ml-1 cursor-pointer"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
                       )}
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-2 bg-zinc-950 border-zinc-800 shadow-2xl" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={selectedDate}
-                      onSelect={(date) => {
-                        setSelectedDate(date);
-                        setIsCalendarOpen(false);
-                      }}
-                      locale={ptBR}
-                      autoFocus
-                    />
-                  </PopoverContent>
-                </Popover>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* Botão de Repetir / Chip de Recorrência Configurada */}

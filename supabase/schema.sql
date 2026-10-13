@@ -72,6 +72,7 @@ CREATE TABLE IF NOT EXISTS public.crm_tarefas (
     titulo TEXT NOT NULL,
     descricao TEXT,
     prazo TIMESTAMPTZ,
+    horario VARCHAR(10),
     prioridade TEXT CHECK (prioridade IN ('alta', 'media', 'baixa')) DEFAULT 'media',
     concluida BOOLEAN NOT NULL DEFAULT FALSE,
     concluida_em TIMESTAMPTZ,
@@ -115,6 +116,7 @@ CREATE INDEX IF NOT EXISTS idx_areas_foco_id_usuario ON public.areas_foco(id_usu
 CREATE INDEX IF NOT EXISTS idx_crm_tarefas_id_usuario ON public.crm_tarefas(id_usuario);
 CREATE INDEX IF NOT EXISTS idx_crm_tarefas_id_area ON public.crm_tarefas(id_area);
 CREATE INDEX IF NOT EXISTS idx_crm_tarefas_prazo ON public.crm_tarefas(prazo);
+CREATE INDEX IF NOT EXISTS idx_crm_tarefas_horario ON public.crm_tarefas(horario);
 CREATE INDEX IF NOT EXISTS idx_crm_tarefas_concluida ON public.crm_tarefas(concluida);
 CREATE INDEX IF NOT EXISTS idx_crm_tarefas_id_meta ON public.crm_tarefas(id_meta_vinculada);
 CREATE INDEX IF NOT EXISTS idx_metas_macro_id_usuario ON public.metas_macro(id_usuario);

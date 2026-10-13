@@ -16,7 +16,12 @@ import { useTasks, Task } from '@/contexts/TasksContext';
 import { TaskCard } from '@/components/tasks/TaskCard';
 import { TaskModal } from '@/components/tasks/TaskModal';
 import { DeleteTaskModal } from '@/components/tasks/DeleteTaskModal';
-import { isTodaySaoPaulo, isOverdueSaoPaulo, formatSaoPauloHeaderDate } from '@/lib/dateUtils';
+import { 
+  isTodaySaoPaulo, 
+  isOverdueSaoPaulo, 
+  formatSaoPauloHeaderDate,
+  sortTasksCronologicamente 
+} from '@/lib/dateUtils';
 
 export const Dashboard: React.FC = () => {
   const { 
@@ -44,10 +49,22 @@ export const Dashboard: React.FC = () => {
   // Filtrar tarefas ATRASADAS (vencimento anterior a hoje e não concluídas)
   const overdueTasks = tasks.filter((t) => isOverdueSaoPaulo(t.prazo) && !t.concluida);
 
+  // Ordenação cronológica estrita:
+  // 1. Ordem crescente de horário ('07:00' < '14:00')
+  // 2. Tarefas sem horário empurradas para o final
+  // 3. Desempate: Prioridade (Alta > Média > Baixa)
+  const sortedTodayPending = todayTasks
+    .filter((t) => !t.concluida)
+    .sort(sortTasksCronologicamente);
+
+  const sortedOverdue = overdueTasks
+    .slice()
+    .sort(sortTasksCronologicamente);
+
   // Lista de exibição unificada
   const displayPendingTasks = includeOverdue
-    ? [...overdueTasks, ...todayTasks.filter((t) => !t.concluida)]
-    : todayTasks.filter((t) => !t.concluida);
+    ? [...sortedOverdue, ...sortedTodayPending]
+    : sortedTodayPending;
 
   const todayCompletedTasks = todayTasks.filter((t) => t.concluida);
 

@@ -27,6 +27,7 @@ interface TasksContextType {
     titulo: string;
     descricao?: string;
     prazo?: string | null;
+    horario?: string | null;
     prioridade: 'alta' | 'media' | 'baixa';
     id_area?: string | null;
     recorrente?: boolean;
@@ -46,6 +47,7 @@ interface TasksContextType {
       titulo?: string;
       descricao?: string | null;
       prazo?: string | null;
+      horario?: string | null;
       prioridade?: 'alta' | 'media' | 'baixa';
       id_area?: string | null;
       recorrente?: boolean;
@@ -158,13 +160,21 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     try {
       const isRecorrente = data.recorrente ?? false;
-      const dataPrazo = (isRecorrente && !data.prazo) ? format(new Date(), 'yyyy-MM-dd') : (data.prazo || null);
+      let dataPrazo: string | null = null;
+      if (data.prazo) {
+        dataPrazo = typeof data.prazo === 'string' && data.prazo.match(/^\d{4}-\d{2}-\d{2}/)
+          ? data.prazo.substring(0, 10)
+          : data.prazo;
+      } else if (isRecorrente) {
+        dataPrazo = format(new Date(), 'yyyy-MM-dd');
+      }
 
       const payload = {
         id_usuario: user.id,
         titulo: data.titulo.trim(),
         descricao: data.descricao?.trim() || null,
         prazo: dataPrazo,
+        horario: data.horario ? data.horario.trim() : null,
         prioridade: data.prioridade || 'media',
         id_area: data.id_area || null,
         concluida: false,
@@ -218,6 +228,9 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     try {
       let prazoToUpdate = data.prazo;
+      if (prazoToUpdate && typeof prazoToUpdate === 'string' && prazoToUpdate.match(/^\d{4}-\d{2}-\d{2}/)) {
+        prazoToUpdate = prazoToUpdate.substring(0, 10);
+      }
       if (data.recorrente === true && !prazoToUpdate) {
         prazoToUpdate = format(new Date(), 'yyyy-MM-dd');
       }
@@ -226,6 +239,7 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         ...(data.titulo !== undefined && { titulo: data.titulo.trim() }),
         ...(data.descricao !== undefined && { descricao: data.descricao?.trim() || null }),
         ...(data.prazo !== undefined && { prazo: prazoToUpdate || null }),
+        ...(data.horario !== undefined && { horario: data.horario ? data.horario.trim() : null }),
         ...(data.prioridade !== undefined && { prioridade: data.prioridade }),
         ...(data.id_area !== undefined && { id_area: data.id_area || null }),
         ...(data.recorrente !== undefined && { recorrente: data.recorrente }),
@@ -319,6 +333,7 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             titulo: task.titulo,
             descricao: task.descricao || null,
             prazo: format(nextDate, 'yyyy-MM-dd'),
+            horario: task.horario || null,
             prioridade: task.prioridade || 'media',
             concluida: false,
             concluida_em: null,

@@ -138,3 +138,70 @@ export function calculateNextRecurrenceDate(params: RecurrenceCalculationParams)
 
   return nextDate;
 }
+
+/**
+ * Formata o prazo da tarefa para exibição limpa no card:
+ * - Se não houver horário definido: exibe APENAS a data (ex: "12 de Out.")
+ * - Se houver horário definido: exibe ambos (ex: "12 de Out., 07:00")
+ */
+export function formatPrazoComHorario(prazo: string | null, horario?: string | null): string | null {
+  if (!prazo) {
+    return horario && horario.trim() !== '' ? horario.trim() : null;
+  }
+
+  const date = parseLocalDateSaoPaulo(prazo);
+  const diaMes = date.toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: 'short',
+  });
+
+  // Capitaliza a primeira letra do mês para maior elegância (ex: "12 de out." -> "12 de Out.")
+  const diaMesCapitalizado = diaMes.replace(/([a-záéíóúç]+)\.?$/i, (match) => {
+    return match.charAt(0).toUpperCase() + match.slice(1).replace('.', '');
+  });
+
+  if (horario && horario.trim() !== '') {
+    return `${diaMesCapitalizado}, ${horario.trim()}`;
+  }
+
+  return diaMesCapitalizado;
+}
+
+/**
+ * Ordenação cronológica estrita para a lista "Tarefas do Dia" no Dashboard:
+ * 1. Ordem crescente de horário (ex: '07:00' vem antes de '14:00')
+ * 2. Tarefas sem horário definido (null/vazio) são empurradas para o FINAL da lista do dia
+ * 3. Desempate: Prioridade (Alta > Média > Baixa)
+ * 4. Desempate final: Data de criação mais recente primeiro
+ */
+export function sortTasksCronologicamente(a: { horario?: string | null; prioridade?: 'alta' | 'media' | 'baixa'; created_at?: string }, b: { horario?: string | null; prioridade?: 'alta' | 'media' | 'baixa'; created_at?: string }): number {
+  const hasTimeA = !!(a.horario && a.horario.trim() !== '');
+  const hasTimeB = !!(b.horario && b.horario.trim() !== '');
+
+  // 1. Ordem crescente de horário
+  if (hasTimeA && hasTimeB) {
+    const timeCompare = a.horario!.trim().localeCompare(b.horario!.trim());
+    if (timeCompare !== 0) return timeCompare;
+  } else if (hasTimeA && !hasTimeB) {
+    return -1; // A tem horário, vem antes
+  } else if (!hasTimeA && hasTimeB) {
+    return 1; // B tem horário, A sem horário vai para o final
+  }
+
+  // 2. Desempate: Prioridade (Alta > Média > Baixa)
+  const priorityWeight: Record<string, number> = {
+    alta: 1,
+    media: 2,
+    baixa: 3,
+  };
+  const weightA = priorityWeight[a.prioridade || 'media'] ?? 2;
+  const weightB = priorityWeight[b.prioridade || 'media'] ?? 2;
+  if (weightA !== weightB) {
+    return weightA - weightB;
+  }
+
+  // 3. Desempate final: data de criação (mais novas primeiro)
+  const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
+  const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
+  return timeB - timeA;
+}

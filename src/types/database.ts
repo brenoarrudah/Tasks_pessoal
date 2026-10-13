@@ -48,6 +48,7 @@ export interface Task {
   titulo: string;
   descricao: string | null;
   prazo: string | null;
+  horario?: string | null;
   prioridade: PrioridadeTipo;
   concluida: boolean;
   concluida_em: string | null;
