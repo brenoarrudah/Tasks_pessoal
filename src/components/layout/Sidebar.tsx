@@ -10,7 +10,8 @@ import {
   ChevronDown, 
   ChevronRight, 
   X,
-  Loader2
+  Loader2,
+  Target
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAreas } from '@/contexts/AreasContext';
@@ -33,10 +34,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const { openCreateTaskModal } = useTasks();
   const [listsOpen, setListsOpen] = useState(true);
 
-  // NavItems conforme a especificação da Etapa 2
+  // NavItems conforme a especificação
   const navItems = [
     { label: 'Tarefas do Dia', path: '/', icon: Sun },
     { label: 'Visão Geral', path: '/tarefas', icon: ListTodo },
+    { label: 'Metas e Projetos', path: '/metas', icon: Target },
     { label: 'Gestão de Áreas', path: '/areas', icon: Folders },
     { label: 'Configurações', path: '/configuracoes', icon: Settings },
     { label: 'Logs do Sistema', path: '/logs', icon: Activity },

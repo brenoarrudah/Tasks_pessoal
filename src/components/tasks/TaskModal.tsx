@@ -8,10 +8,12 @@ import {
   Layers, 
   Flag, 
   RotateCcw,
-  Clock
+  Clock,
+  Target
 } from 'lucide-react';
 import { useTasks, Task } from '@/contexts/TasksContext';
 import { useAreas } from '@/contexts/AreasContext';
+import { useMetas } from '@/contexts/MetasContext';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
@@ -43,6 +45,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
 }) => {
   const { createTask, updateTask } = useTasks();
   const { areas } = useAreas();
+  const { metas } = useMetas();
 
   const [titulo, setTitulo] = useState('');
   const [descricao, setDescricao] = useState('');
@@ -51,6 +54,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [prioridade, setPrioridade] = useState<'alta' | 'media' | 'baixa'>('media');
   const [idArea, setIdArea] = useState<string>('');
+  const [idMetaVinculada, setIdMetaVinculada] = useState<string>('');
   
   // Estado de Recorrência
   const [recurrence, setRecurrence] = useState<RecurrenceConfig>(defaultRecurrence);
@@ -58,6 +62,9 @@ export const TaskModal: React.FC<TaskModalProps> = ({
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Metas ativas disponíveis para vinculação
+  const activeMetas = metas.filter((m) => m.status === 'em_andamento' || m.id === idMetaVinculada);
 
   useEffect(() => {
     if (taskToEdit) {
@@ -72,6 +79,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
       setHorario(taskToEdit.horario || '');
       setPrioridade(taskToEdit.prioridade || 'media');
       setIdArea(taskToEdit.id_area || '');
+      setIdMetaVinculada(taskToEdit.id_meta_vinculada || '');
       setRecurrence({
         recorrente: !!taskToEdit.recorrente,
         repeticao_intervalo: taskToEdit.repeticao_intervalo || 1,
@@ -88,6 +96,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
       setHorario('');
       setPrioridade('media');
       setIdArea(defaultAreaId || (areas.length > 0 ? areas[0].id : ''));
+      setIdMetaVinculada('');
       setRecurrence(defaultRecurrence);
     }
     setError(null);
@@ -162,6 +171,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
           horario: horario.trim() || null,
           prioridade,
           id_area: idArea || null,
+          id_meta_vinculada: idMetaVinculada || null,
           ...recurrenceData,
         });
       } else {
@@ -172,6 +182,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
           horario: horario.trim() || null,
           prioridade,
           id_area: idArea || null,
+          id_meta_vinculada: idMetaVinculada || null,
           ...recurrenceData,
         });
       }
@@ -287,6 +298,26 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                 </select>
               </div>
 
+            </div>
+
+            {/* Vínculo com Meta Macro */}
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300 mb-1.5 flex items-center gap-1.5">
+                <Target className="w-3.5 h-3.5 text-blue-400" />
+                Vincular a uma Meta Macro (Objetivo)
+              </label>
+              <select
+                value={idMetaVinculada}
+                onChange={(e) => setIdMetaVinculada(e.target.value)}
+                className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-zinc-100 text-sm focus:outline-none focus:border-blue-500 transition-colors cursor-pointer"
+              >
+                <option value="">Nenhuma meta vinculada (Tarefa avulsa)</option>
+                {activeMetas.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    🎯 {m.titulo} ({m.progresso_atual}/{m.progresso_alvo} pts)
+                  </option>
+                ))}
+              </select>
             </div>
 
             {/* Prazo e Recorrência (Estilo Google Tasks) */}

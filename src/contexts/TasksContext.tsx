@@ -212,6 +212,7 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       titulo?: string;
       descricao?: string | null;
       prazo?: string | null;
+      horario?: string | null;
       prioridade?: 'alta' | 'media' | 'baixa';
       id_area?: string | null;
       recorrente?: boolean;
@@ -222,6 +223,8 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       termino_data?: string | null;
       termino_ocorrencias?: number | null;
       ocorrencias_realizadas?: number;
+      id_meta_vinculada?: string | null;
+      recompensa_xp?: number;
     }
   ) => {
     if (!user) return false;

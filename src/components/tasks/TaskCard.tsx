@@ -11,10 +11,12 @@ import {
   Clock,
   CheckSquare,
   CornerDownRight,
-  RotateCcw
+  RotateCcw,
+  Target
 } from 'lucide-react';
 import { Task, useTasks } from '@/contexts/TasksContext';
 import { useAreas } from '@/contexts/AreasContext';
+import { useMetas } from '@/contexts/MetasContext';
 import { AreaIcon } from '@/components/areas/AreaIcon';
 import { cn } from '@/lib/utils';
 import { formatPrazoComHorario } from '@/lib/dateUtils';
@@ -28,6 +30,7 @@ interface TaskCardProps {
 export const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) => {
   const { toggleTaskComplete, createSubtask, toggleSubtaskComplete, deleteSubtask } = useTasks();
   const { areas } = useAreas();
+  const { metas } = useMetas();
 
   const [expanded, setExpanded] = useState(false);
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
@@ -35,6 +38,9 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) =>
 
   // Buscar a área associada à tarefa
   const area = areas.find((a) => a.id === task.id_area);
+
+  // Buscar a meta macro vinculada à tarefa
+  const linkedMeta = task.id_meta_vinculada ? metas.find((m) => m.id === task.id_meta_vinculada) : null;
 
   // Subtarefas calculadas
   const subtasks = task.subtarefas || [];
@@ -143,6 +149,17 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) =>
                 />
                 <AreaIcon name={area.icone} className="w-3 h-3 text-zinc-400" />
                 <span>{area.nome}</span>
+              </span>
+            )}
+
+            {/* Badge de Meta Macro Vinculada */}
+            {linkedMeta && (
+              <span 
+                title={`Meta Macro: ${linkedMeta.titulo} (${linkedMeta.progresso_atual}/${linkedMeta.progresso_alvo} pts)`}
+                className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-emerald-950/60 border border-emerald-800/60 text-emerald-300 flex items-center gap-1 shrink-0"
+              >
+                <Target className="w-3 h-3 text-emerald-400" />
+                <span className="truncate max-w-[130px]">{linkedMeta.titulo}</span>
               </span>
             )}
           </div>
