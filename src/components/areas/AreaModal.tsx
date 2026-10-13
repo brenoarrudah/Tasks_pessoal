@@ -50,7 +50,6 @@ export const AreaModal: React.FC<AreaModalProps> = ({
       await onSave({ nome: nome.trim(), cor, icone });
       onClose();
     } catch (err: unknown) {
-      console.error(err);
       setError('Falha ao salvar a área de foco. Tente novamente.');
     } finally {
       setLoading(false);

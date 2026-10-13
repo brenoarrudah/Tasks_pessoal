@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { notifyError } from '@/lib/notify';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from './AuthContext';
 
@@ -47,7 +48,7 @@ export const AreasProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     if (updatesNeeded.length > 0) {
       try {
-        await Promise.all(
+        const results = await Promise.all(
           updatesNeeded.map(({ id, ordem }) =>
             supabase
               .from('areas_foco')
@@ -56,8 +57,9 @@ export const AreasProvider: React.FC<{ children: React.ReactNode }> = ({ childre
               .eq('id_usuario', user.id)
           )
         );
-      } catch (updateErr) {
-        console.error('Erro ao salvar normalização de ordens no Supabase:', updateErr);
+        if (results.some((r) => r.error)) notifyError();
+      } catch {
+        notifyError();
       }
     }
 
@@ -100,14 +102,12 @@ export const AreasProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setAreas(normalizedOptimistic);
 
         // Dispara re-indexação no Supabase em segundo plano
-        normalizeAreaOrders(currentList).catch((normErr) =>
-          console.error('Erro ao normalizar ordens das áreas em segundo plano:', normErr)
-        );
+        normalizeAreaOrders(currentList).catch(() => notifyError());
       } else {
         setAreas(currentList);
       }
     } catch (err: unknown) {
-      console.error('Erro ao carregar áreas de foco:', err);
+      notifyError();
       setError('Não foi possível carregar as áreas de foco.');
     } finally {
       setLoading(false);
@@ -136,7 +136,6 @@ export const AreasProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         dados_novos: dadosNovos ? JSON.parse(JSON.stringify(dadosNovos)) : null,
       });
     } catch (logErr) {
-      console.warn('Erro ao registrar log de auditoria para áreas_foco:', logErr);
     }
   };
 
@@ -171,7 +170,6 @@ export const AreasProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       await fetchAreas();
       return inserted;
     } catch (err: unknown) {
-      console.error('Erro ao criar área:', err);
       throw err;
     }
   };
@@ -206,7 +204,6 @@ export const AreasProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       await fetchAreas();
       return true;
     } catch (err: unknown) {
-      console.error('Erro ao atualizar área:', err);
       throw err;
     }
   };
@@ -256,7 +253,6 @@ export const AreasProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       await fetchAreas();
       return true;
     } catch (err: unknown) {
-      console.error('Erro ao excluir área:', err);
       throw err;
     }
   };
@@ -298,7 +294,7 @@ export const AreasProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
       return true;
     } catch (err: unknown) {
-      console.error('Erro ao reordenar áreas:', err);
+      notifyError();
       await fetchAreas();
       return false;
     }

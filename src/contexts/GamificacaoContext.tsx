@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { notifyError } from '@/lib/notify';
 import { supabase } from '@/lib/supabase';
 import { Flame } from 'lucide-react';
 import { useAuth } from './AuthContext';
@@ -85,7 +86,7 @@ export const GamificacaoProvider: React.FC<{ children: React.ReactNode }> = ({ c
         setPerfil(created);
       }
     } catch (err) {
-      console.error('Erro ao buscar perfil de gamificação:', err);
+      notifyError();
     } finally {
       setLoading(false);
     }
@@ -130,7 +131,7 @@ export const GamificacaoProvider: React.FC<{ children: React.ReactNode }> = ({ c
       }
       return true;
     } catch (err) {
-      console.error('Erro ao ajustar XP:', err);
+      notifyError();
       return false;
     }
   };
@@ -174,7 +175,7 @@ export const GamificacaoProvider: React.FC<{ children: React.ReactNode }> = ({ c
       setTimeout(() => setCelebracao(null), 4500);
       return true;
     } catch (err) {
-      console.error('Erro ao registrar vitória diária:', err);
+      notifyError();
       return false;
     }
   };

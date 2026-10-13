@@ -80,7 +80,6 @@ export const MetaModal: React.FC<MetaModalProps> = ({
 
       onClose();
     } catch (err: unknown) {
-      console.error(err);
       setError(err instanceof Error ? err.message : 'Falha ao salvar meta.');
     } finally {
       setLoading(false);

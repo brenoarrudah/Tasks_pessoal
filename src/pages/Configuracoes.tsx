@@ -20,6 +20,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useAreas } from '@/contexts/AreasContext';
 import { useTasks } from '@/contexts/TasksContext';
 import { supabase } from '@/lib/supabase';
+import { notifyError } from '@/lib/notify';
 
 interface ParsedTask {
   title: string;
@@ -100,7 +101,7 @@ export const Configuracoes: React.FC = () => {
         });
 
       if (usuariosErr) {
-        console.warn('Erro ao atualizar tabela usuarios:', usuariosErr);
+        notifyError('Falha ao sincronizar o nome com o Sistema');
       }
 
       // 2. Atualizar metadados no Supabase Auth
@@ -120,7 +121,6 @@ export const Configuracoes: React.FC = () => {
       setProfileToast('Nome atualizado com sucesso!');
       setTimeout(() => setProfileToast(null), 3500);
     } catch (err: unknown) {
-      console.error('Erro ao atualizar nome:', err);
       setProfileError(err instanceof Error ? err.message : 'Falha ao atualizar o nome.');
     } finally {
       setIsSavingName(false);
@@ -159,7 +159,6 @@ export const Configuracoes: React.FC = () => {
         setProfileToast(null);
       }, 5000);
     } catch (err: unknown) {
-      console.error('Erro ao atualizar senha:', err);
       setPasswordError(err instanceof Error ? err.message : 'Falha ao atualizar a senha.');
     } finally {
       setIsUpdatingPassword(false);
@@ -168,9 +167,28 @@ export const Configuracoes: React.FC = () => {
 
   // Normalização e extração de listas e tarefas de arquivos do Google Takeout
   const parseGoogleTasksJson = (jsonText: string, fallbackFileName: string): ParsedList[] => {
-    let data: any;
+    interface TakeoutItem {
+      title?: string;
+      name?: string;
+      notes?: string;
+      descricao?: string;
+      description?: string;
+      due?: string;
+      prazo?: string;
+      due_date?: string;
+      status?: string;
+      concluida?: boolean;
+      completed?: string | boolean;
+      deleted?: boolean;
+      kind?: string;
+      items?: TakeoutItem[];
+      tasks?: TakeoutItem[];
+      lists?: TakeoutItem[];
+    }
+
+    let data: TakeoutItem | TakeoutItem[];
     try {
-      data = JSON.parse(jsonText);
+      data = JSON.parse(jsonText) as TakeoutItem | TakeoutItem[];
     } catch {
       throw new Error('O arquivo selecionado não contém um JSON válido.');
     }
@@ -178,7 +196,7 @@ export const Configuracoes: React.FC = () => {
     const defaultListName = fallbackFileName.replace(/\.[^/.]+$/, '').trim() || 'Google Tasks';
     const lists: ParsedList[] = [];
 
-    const extractTasks = (items: any[]): ParsedTask[] => {
+    const extractTasks = (items: TakeoutItem[]): ParsedTask[] => {
       if (!Array.isArray(items)) return [];
       return items
         .filter((item) => item && typeof item === 'object' && item.deleted !== true)
@@ -383,7 +401,6 @@ export const Configuracoes: React.FC = () => {
 
         await processImport(content, file.name);
       } catch (err: unknown) {
-        console.error('Erro na importação:', err);
         const msg = err instanceof Error ? err.message : 'Falha ao processar o arquivo de importação.';
         setError(msg);
       } finally {
@@ -458,7 +475,6 @@ export const Configuracoes: React.FC = () => {
       await fetchTasks();
       setCleanSuccess(`Limpeza concluída! Foram removidas ${duplicateIds.length} tarefa(s) duplicada(s) mantendo a versão mais recente.`);
     } catch (err: unknown) {
-      console.error('Erro na limpeza de duplicadas:', err);
       setError(err instanceof Error ? err.message : 'Falha ao executar limpeza de tarefas duplicadas.');
     } finally {
       setCleaning(false);

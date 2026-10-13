@@ -27,7 +27,6 @@ export const DeleteTaskModal: React.FC<DeleteTaskModalProps> = ({
       await onConfirm(task.id);
       onClose();
     } catch (err: unknown) {
-      console.error(err);
       setError('Ocorreu um erro ao excluir a tarefa.');
     } finally {
       setLoading(false);

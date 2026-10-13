@@ -7,12 +7,9 @@ import {
   Pencil, 
   Trash2, 
   Award, 
-  Clock, 
   Layers, 
   TrendingUp, 
   Check, 
-  Pause, 
-  Play, 
   AlertCircle 
 } from 'lucide-react';
 import { useMetas } from '@/contexts/MetasContext';
@@ -20,6 +17,7 @@ import { useTasks } from '@/contexts/TasksContext';
 import { MetaMacro } from '@/types';
 import { MetaModal } from '@/components/metas/MetaModal';
 import { cn } from '@/lib/utils';
+import { notifyError } from '@/lib/notify';
 
 export const Metas: React.FC = () => {
   const { metas, loading, deleteMeta, updateMeta, incrementarProgresso } = useMetas();
@@ -46,8 +44,8 @@ export const Metas: React.FC = () => {
       setDeletingId(metaToDelete.id);
       await deleteMeta(metaToDelete.id);
       setMetaToDelete(null);
-    } catch (err) {
-      console.error('Erro ao deletar meta:', err);
+    } catch {
+      notifyError();
     } finally {
       setDeletingId(null);
     }
@@ -55,10 +53,14 @@ export const Metas: React.FC = () => {
 
   const handleToggleConcluida = async (meta: MetaMacro) => {
     const isConcluida = meta.status === 'concluida';
-    await updateMeta(meta.id, {
-      status: isConcluida ? 'em_andamento' : 'concluida',
-      progresso_atual: isConcluida ? Math.max(0, meta.progresso_alvo - 1) : meta.progresso_alvo,
-    });
+    try {
+      await updateMeta(meta.id, {
+        status: isConcluida ? 'em_andamento' : 'concluida',
+        progresso_atual: isConcluida ? Math.max(0, meta.progresso_alvo - 1) : meta.progresso_alvo,
+      });
+    } catch {
+      notifyError();
+    }
   };
 
   // Contadores e métricas

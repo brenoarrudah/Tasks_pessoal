@@ -33,7 +33,6 @@ export function isTodaySaoPaulo(dateStr: string | null): boolean {
     const taskDate = parseLocalDateSaoPaulo(dateStr);
     return getSaoPauloDateString(taskDate) === getTodaySaoPauloString();
   } catch (e) {
-    console.error('Erro ao formatar data:', e);
     return false;
   }
 }
@@ -44,7 +43,6 @@ export function isOverdueSaoPaulo(dateStr: string | null): boolean {
     const taskDate = parseLocalDateSaoPaulo(dateStr);
     return getSaoPauloDateString(taskDate) < getTodaySaoPauloString();
   } catch (e) {
-    console.error('Erro ao formatar data:', e);
     return false;
   }
 }

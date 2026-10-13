@@ -27,7 +27,6 @@ export const DeleteAreaModal: React.FC<DeleteAreaModalProps> = ({
       await onConfirm(area.id);
       onClose();
     } catch (err: unknown) {
-      console.error(err);
       setError('Ocorreu um erro ao tentar excluir a área. Tente novamente.');
     } finally {
       setLoading(false);

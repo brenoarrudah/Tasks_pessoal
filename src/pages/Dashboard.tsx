@@ -3,12 +3,10 @@ import {
   Sun, 
   Plus, 
   CheckCircle2, 
-  Sparkles, 
   ChevronDown, 
   ChevronRight, 
   Clock, 
   AlertCircle,
-  Calendar,
   Flame,
   Award
 } from 'lucide-react';

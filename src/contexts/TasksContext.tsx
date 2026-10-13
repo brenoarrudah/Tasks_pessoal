@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { notifyError } from '@/lib/notify';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from './AuthContext';
 import { useMetas } from './MetasContext';
@@ -138,7 +139,7 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
       setTasks(formattedTasks);
     } catch (err: unknown) {
-      console.error('Erro ao carregar tarefas:', err);
+      notifyError();
       setError('Não foi possível carregar as tarefas.');
     } finally {
       setLoading(false);
@@ -153,15 +154,19 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     titulo: string;
     descricao?: string;
     prazo?: string | null;
+    horario?: string | null;
     prioridade: 'alta' | 'media' | 'baixa';
     id_area?: string | null;
     recorrente?: boolean;
     repeticao_intervalo?: number;
     repeticao_tipo?: RepeticaoTipo;
+    repeticao_dias_semana?: number[] | null;
     termino_tipo?: TerminoTipo;
     termino_data?: string | null;
     termino_ocorrencias?: number | null;
     ocorrencias_realizadas?: number;
+    id_meta_vinculada?: string | null;
+    recompensa_xp?: number;
   }) => {
     if (!user) return null;
 
@@ -208,7 +213,6 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       await fetchTasks();
       return inserted;
     } catch (err: unknown) {
-      console.error('Erro ao criar tarefa:', err);
       throw err;
     }
   };
@@ -276,7 +280,6 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       await fetchTasks();
       return true;
     } catch (err: unknown) {
-      console.error('Erro ao atualizar tarefa:', err);
       throw err;
     }
   };
@@ -412,7 +415,7 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       await fetchTasks();
       return true;
     } catch (err: unknown) {
-      console.error('Erro ao marcar conclusão da tarefa:', err);
+      notifyError();
       return false;
     }
   };
@@ -432,7 +435,6 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       await fetchTasks();
       return true;
     } catch (err: unknown) {
-      console.error('Erro ao excluir tarefa:', err);
       throw err;
     }
   };
@@ -465,7 +467,6 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
       return inserted;
     } catch (err: unknown) {
-      console.error('Erro ao criar subtarefa:', err);
       throw err;
     }
   };
@@ -498,7 +499,7 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
       return true;
     } catch (err: unknown) {
-      console.error('Erro ao marcar subtarefa:', err);
+      notifyError();
       return false;
     }
   };
@@ -527,7 +528,7 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
       return true;
     } catch (err: unknown) {
-      console.error('Erro ao excluir subtarefa:', err);
+      notifyError();
       return false;
     }
   };

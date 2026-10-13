@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { notifyError } from '@/lib/notify';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from './AuthContext';
 import { MetaMacro, MetaStatus } from '@/types';
@@ -58,7 +59,7 @@ export const MetasProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (fetchErr) throw fetchErr;
       setMetas(data || []);
     } catch (err: unknown) {
-      console.error('Erro ao buscar metas macro:', err);
+      notifyError();
       setError(err instanceof Error ? err.message : 'Falha ao carregar metas');
     } finally {
       setLoading(false);
@@ -99,7 +100,6 @@ export const MetasProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       await fetchMetas();
       return inserted;
     } catch (err: unknown) {
-      console.error('Erro ao criar meta macro:', err);
       throw err;
     }
   };
@@ -137,7 +137,6 @@ export const MetasProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       await fetchMetas();
       return true;
     } catch (err: unknown) {
-      console.error('Erro ao atualizar meta macro:', err);
       throw err;
     }
   };
@@ -157,7 +156,6 @@ export const MetasProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setMetas((prev) => prev.filter((m) => m.id !== id));
       return true;
     } catch (err: unknown) {
-      console.error('Erro ao excluir meta macro:', err);
       throw err;
     }
   };
@@ -175,7 +173,7 @@ export const MetasProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         .single();
 
       if (fetchErr || !metaAtual) {
-        console.error('Meta vinculada não encontrada:', fetchErr);
+        notifyError();
         return false;
       }
 
@@ -208,7 +206,7 @@ export const MetasProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         .eq('id_usuario', user.id);
 
       if (updateErr) {
-        console.error('Erro ao atualizar progresso da meta:', updateErr);
+        notifyError();
         await fetchMetas();
         return false;
       }
@@ -216,7 +214,7 @@ export const MetasProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       await fetchMetas();
       return true;
     } catch (err) {
-      console.error('Erro em ajustarProgresso:', err);
+      notifyError();
       return false;
     }
   };

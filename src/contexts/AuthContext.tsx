@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { notifyError } from '@/lib/notify';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 
@@ -37,7 +38,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setProfile(data);
       }
     } catch (err) {
-      console.error('Erro ao buscar perfil:', err);
+      notifyError();
     }
   };
 
@@ -51,7 +52,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         await fetchProfile(user.id);
       }
     } catch (err) {
-      console.error('Erro ao atualizar perfil:', err);
+      notifyError();
       if (user) {
         await fetchProfile(user.id);
       }

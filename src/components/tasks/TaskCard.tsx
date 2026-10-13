@@ -3,11 +3,9 @@ import {
   Check, 
   ChevronDown, 
   ChevronUp, 
-  Calendar, 
   Pencil, 
   Trash2, 
   Plus, 
-  Flag, 
   Clock,
   CheckSquare,
   CornerDownRight,
@@ -20,6 +18,7 @@ import { useMetas } from '@/contexts/MetasContext';
 import { AreaIcon } from '@/components/areas/AreaIcon';
 import { cn } from '@/lib/utils';
 import { formatPrazoComHorario } from '@/lib/dateUtils';
+import { notifyError } from '@/lib/notify';
 
 interface TaskCardProps {
   task: Task;
@@ -59,8 +58,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) =>
       setAddingSubtask(true);
       await createSubtask(task.id, newSubtaskTitle);
       setNewSubtaskTitle('');
-    } catch (err) {
-      console.error(err);
+    } catch {
+      notifyError();
     } finally {
       setAddingSubtask(false);
     }

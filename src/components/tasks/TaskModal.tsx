@@ -189,7 +189,6 @@ export const TaskModal: React.FC<TaskModalProps> = ({
 
       onClose();
     } catch (err: unknown) {
-      console.error(err);
       setError('Falha ao salvar a tarefa. Verifique as informações.');
     } finally {
       setLoading(false);

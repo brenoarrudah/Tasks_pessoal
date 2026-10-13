@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { CheckCircle2, Menu, Settings, LogOut, User as UserIcon, ChevronDown } from 'lucide-react';
+import { CheckCircle2, Menu, Settings, LogOut, ChevronDown } from 'lucide-react';
 
 interface HeaderProps {
   onToggleMobileSidebar: () => void;

@@ -38,7 +38,6 @@ export const Login: React.FC = () => {
         navigate('/');
       }
     } catch (err: unknown) {
-      console.error(err);
       setError('Ocorreu um erro inesperado ao conectar ao servidor.');
     } finally {
       setLoading(false);

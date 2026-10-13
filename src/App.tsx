@@ -1,4 +1,3 @@
-import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { AreasProvider } from '@/contexts/AreasContext';
@@ -7,6 +6,7 @@ import { GamificacaoProvider } from '@/contexts/GamificacaoContext';
 import { TasksProvider } from '@/contexts/TasksContext';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { AppLayout } from '@/components/layout/AppLayout';
+import { ErrorToastHost } from '@/components/layout/ErrorToastHost';
 
 import { Login } from '@/pages/Login';
 import { Dashboard } from '@/pages/Dashboard';
@@ -19,6 +19,7 @@ import { LogsSistema } from '@/pages/LogsSistema';
 export function App() {
   return (
     <BrowserRouter>
+      <ErrorToastHost />
       <AuthProvider>
         <AreasProvider>
           <MetasProvider>
