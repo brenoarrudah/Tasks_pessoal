@@ -1,7 +1,16 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
+import { Flame } from 'lucide-react';
 import { useAuth } from './AuthContext';
+import { getTodaySaoPauloString, parseLocalDateSaoPaulo } from '@/lib/dateUtils';
 import type { GamificacaoPerfil } from '@/types';
+
+/** Diferença em dias inteiros entre duas datas 'YYYY-MM-DD' (b - a) */
+const diffDias = (a: string, b: string): number => {
+  const da = parseLocalDateSaoPaulo(a);
+  const db = parseLocalDateSaoPaulo(b);
+  return Math.round((db.getTime() - da.getTime()) / 86400000);
+};
 
 /**
  * Curva de nível: para sair do nível N são necessários N * 100 XP.
@@ -21,6 +30,7 @@ interface GamificacaoContextType {
   loading: boolean;
   fetchPerfil: () => Promise<void>;
   ajustarXp: (delta: number) => Promise<boolean>;
+  registrarVitoriaDiaria: () => Promise<boolean>;
 }
 
 const GamificacaoContext = createContext<GamificacaoContextType | undefined>(undefined);
@@ -29,6 +39,7 @@ export const GamificacaoProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const { user } = useAuth();
   const [perfil, setPerfil] = useState<GamificacaoPerfil | null>(null);
   const [loading, setLoading] = useState(true);
+  const [celebracao, setCelebracao] = useState<string | null>(null);
 
   const fetchPerfil = useCallback(async () => {
     if (!user) {
@@ -47,7 +58,22 @@ export const GamificacaoProvider: React.FC<{ children: React.ReactNode }> = ({ c
       if (error) throw error;
 
       if (data) {
-        setPerfil(data);
+        // Aversão à perda: se falhou o dia de ontem inteiro (diferença > 1 dia), zera a ofensiva
+        const hoje = getTodaySaoPauloString();
+        if (
+          data.streak_atual > 0 &&
+          data.ultima_ofensiva_data &&
+          diffDias(data.ultima_ofensiva_data, hoje) > 1
+        ) {
+          const { error: resetErr } = await supabase
+            .from('gamificacao_perfil')
+            .update({ streak_atual: 0, updated_at: new Date().toISOString() })
+            .eq('id', user.id);
+          if (resetErr) throw resetErr;
+          setPerfil({ ...data, streak_atual: 0 });
+        } else {
+          setPerfil(data);
+        }
       } else {
         // Cria o perfil caso ainda não exista para este usuário
         const { data: created, error: insertErr } = await supabase
@@ -109,9 +135,63 @@ export const GamificacaoProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   };
 
+  const registrarVitoriaDiaria = async () => {
+    if (!user) return false;
+
+    try {
+      const { data: atual, error: fetchErr } = await supabase
+        .from('gamificacao_perfil')
+        .select('streak_atual, ultima_ofensiva_data')
+        .eq('id', user.id)
+        .maybeSingle();
+      if (fetchErr) throw fetchErr;
+
+      const hoje = getTodaySaoPauloString();
+      // Já ganhou a ofensiva de hoje: não duplica
+      if (atual?.ultima_ofensiva_data === hoje) return false;
+
+      const novoStreak = (atual?.streak_atual ?? 0) + 1;
+
+      setPerfil((prev) =>
+        prev ? { ...prev, streak_atual: novoStreak, ultima_ofensiva_data: hoje } : prev
+      );
+
+      const { error: updateErr } = await supabase
+        .from('gamificacao_perfil')
+        .update({
+          streak_atual: novoStreak,
+          ultima_ofensiva_data: hoje,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', user.id);
+
+      if (updateErr) {
+        await fetchPerfil();
+        throw updateErr;
+      }
+
+      setCelebracao(`Vitória Diária! Ofensiva aumentada para ${novoStreak} 🔥`);
+      setTimeout(() => setCelebracao(null), 4500);
+      return true;
+    } catch (err) {
+      console.error('Erro ao registrar vitória diária:', err);
+      return false;
+    }
+  };
+
   return (
-    <GamificacaoContext.Provider value={{ perfil, loading, fetchPerfil, ajustarXp }}>
+    <GamificacaoContext.Provider
+      value={{ perfil, loading, fetchPerfil, ajustarXp, registrarVitoriaDiaria }}
+    >
       {children}
+
+      {/* Toast comemorativo de Vitória Diária */}
+      {celebracao && (
+        <div className="fixed bottom-6 right-6 z-[60] bg-zinc-900 border border-orange-500/40 text-zinc-100 px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3 animate-in slide-in-from-bottom-5 duration-200">
+          <Flame className="w-5 h-5 text-orange-400 shrink-0" />
+          <span className="text-sm font-semibold">{celebracao}</span>
+        </div>
+      )}
     </GamificacaoContext.Provider>
   );
 };

@@ -13,6 +13,7 @@ export interface GamificacaoPerfil {
   xp_acumulado: number;
   moedas: number;
   streak_atual: number;
+  ultima_ofensiva_data?: string | null; // 'YYYY-MM-DD'
   created_at?: string;
   updated_at?: string;
 }

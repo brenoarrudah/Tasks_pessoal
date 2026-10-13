@@ -3,6 +3,8 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from './AuthContext';
 import { useMetas } from './MetasContext';
 import { useGamificacao } from './GamificacaoContext';
+import { useAreas } from './AreasContext';
+import { isTodaySaoPaulo } from '@/lib/dateUtils';
 import { calculateNextRecurrenceDate } from '@/lib/dateUtils';
 import { format } from 'date-fns';
 
@@ -86,7 +88,8 @@ const TasksContext = createContext<TasksContextType | undefined>(undefined);
 export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
   const { ajustarProgresso } = useMetas();
-  const { ajustarXp } = useGamificacao();
+  const { ajustarXp, registrarVitoriaDiaria } = useGamificacao();
+  const { areas } = useAreas();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -312,6 +315,27 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (task) {
         const xp = task.recompensa_xp ?? 10;
         await ajustarXp(newCompleted ? xp : -xp);
+      }
+
+      // Condição de Vitória Diária (Streak): todas as Daily Quests de HOJE concluídas.
+      // Daily Quest = tarefa de uma área chamada "Daily Quest"; se essa área não existir,
+      // considera-se a rotina como as tarefas recorrentes.
+      if (newCompleted && task) {
+        const dailyAreaIds = areas
+          .filter((a) => a.nome.toLowerCase().includes('daily quest'))
+          .map((a) => a.id);
+        const isDailyQuest = (t: Task) =>
+          dailyAreaIds.length > 0 ? !!t.id_area && dailyAreaIds.includes(t.id_area) : !!t.recorrente;
+
+        const questsHoje = tasks.filter((t) => isDailyQuest(t) && isTodaySaoPaulo(t.prazo));
+        const todasConcluidas =
+          isDailyQuest(task) &&
+          questsHoje.length > 0 &&
+          questsHoje.every((t) => t.id === id || t.concluida);
+
+        if (todasConcluidas) {
+          await registrarVitoriaDiaria();
+        }
       }
 
       // Progressão Automática de Metas Macro (Etapa 4)
