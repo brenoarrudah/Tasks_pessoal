@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import { supabase } from '@/lib/supabase';
 import { useAuth } from './AuthContext';
 import { useMetas } from './MetasContext';
+import { useGamificacao } from './GamificacaoContext';
 import { calculateNextRecurrenceDate } from '@/lib/dateUtils';
 import { format } from 'date-fns';
 
@@ -85,6 +86,7 @@ const TasksContext = createContext<TasksContextType | undefined>(undefined);
 export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
   const { ajustarProgresso } = useMetas();
+  const { ajustarXp } = useGamificacao();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -304,6 +306,12 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         // Reverter em caso de falha
         await fetchTasks();
         throw updateErr;
+      }
+
+      // Ganho/Perda de XP do jogador (recompensa_xp, default 10)
+      if (task) {
+        const xp = task.recompensa_xp ?? 10;
+        await ajustarXp(newCompleted ? xp : -xp);
       }
 
       // Progressão Automática de Metas Macro (Etapa 4)

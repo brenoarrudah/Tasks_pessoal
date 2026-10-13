@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { AreasProvider } from '@/contexts/AreasContext';
 import { MetasProvider } from '@/contexts/MetasContext';
+import { GamificacaoProvider } from '@/contexts/GamificacaoContext';
 import { TasksProvider } from '@/contexts/TasksContext';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { AppLayout } from '@/components/layout/AppLayout';
@@ -21,6 +22,7 @@ export function App() {
       <AuthProvider>
         <AreasProvider>
           <MetasProvider>
+            <GamificacaoProvider>
             <TasksProvider>
               <Routes>
                 {/* Rota Pública */}
@@ -42,6 +44,7 @@ export function App() {
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </TasksProvider>
+            </GamificacaoProvider>
           </MetasProvider>
         </AreasProvider>
       </AuthProvider>

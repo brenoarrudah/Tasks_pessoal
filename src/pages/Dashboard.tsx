@@ -15,6 +15,7 @@ import {
 import { useTasks, Task } from '@/contexts/TasksContext';
 import { TaskCard } from '@/components/tasks/TaskCard';
 import { TaskModal } from '@/components/tasks/TaskModal';
+import { PlayerStatusCard } from '@/components/gamificacao/PlayerStatusCard';
 import { DeleteTaskModal } from '@/components/tasks/DeleteTaskModal';
 import { 
   isTodaySaoPaulo, 
@@ -112,6 +113,9 @@ export const Dashboard: React.FC = () => {
           <span>Nova Tarefa</span>
         </button>
       </div>
+
+      {/* Status do Perfil Gamificado */}
+      <PlayerStatusCard />
 
       {/* Widget do Dashboard / Banner Principal */}
       <div className="bg-gradient-to-r from-zinc-900 via-zinc-900/90 to-zinc-950 border border-zinc-800 rounded-3xl p-6 shadow-xl relative overflow-hidden">
