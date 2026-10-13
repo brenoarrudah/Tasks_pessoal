@@ -158,8 +158,11 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) =>
                 title={`Meta Macro: ${linkedMeta.titulo} (${linkedMeta.progresso_atual}/${linkedMeta.progresso_alvo} pts)`}
                 className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-emerald-950/60 border border-emerald-800/60 text-emerald-300 flex items-center gap-1 shrink-0"
               >
-                <Target className="w-3 h-3 text-emerald-400" />
-                <span className="truncate max-w-[130px]">{linkedMeta.titulo}</span>
+                <Target className="w-3 h-3 text-emerald-400 shrink-0" />
+                <span className="truncate max-w-[120px]">{linkedMeta.titulo}</span>
+                <span className="text-[9px] text-emerald-400/90 font-mono font-semibold">
+                  ({linkedMeta.progresso_atual}/{linkedMeta.progresso_alvo})
+                </span>
               </span>
             )}
           </div>

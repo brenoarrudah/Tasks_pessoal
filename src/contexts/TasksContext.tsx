@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from './AuthContext';
+import { useMetas } from './MetasContext';
 import { calculateNextRecurrenceDate } from '@/lib/dateUtils';
 import { format } from 'date-fns';
 
@@ -83,6 +84,7 @@ const TasksContext = createContext<TasksContextType | undefined>(undefined);
 
 export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
+  const { ajustarProgresso } = useMetas();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -302,6 +304,12 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         // Reverter em caso de falha
         await fetchTasks();
         throw updateErr;
+      }
+
+      // Progressão Automática de Metas Macro (Etapa 4)
+      if (task && task.id_meta_vinculada) {
+        const delta = newCompleted ? 1 : -1;
+        await ajustarProgresso(task.id_meta_vinculada, delta);
       }
 
       // Se estamos concluindo uma tarefa recorrente (false -> true)

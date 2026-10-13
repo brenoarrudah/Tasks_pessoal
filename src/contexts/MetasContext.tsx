@@ -27,6 +27,7 @@ interface MetasContextType {
   ) => Promise<boolean>;
   deleteMeta: (id: string) => Promise<boolean>;
   incrementarProgresso: (id: string, quantidade?: number) => Promise<boolean>;
+  ajustarProgresso: (id: string, delta: number) => Promise<boolean>;
 }
 
 const MetasContext = createContext<MetasContextType | undefined>(undefined);
@@ -161,19 +162,67 @@ export const MetasProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
-  const incrementarProgresso = async (id: string, quantidade: number = 1) => {
+  const ajustarProgresso = async (id: string, delta: number) => {
     if (!user) return false;
 
-    const meta = metas.find((m) => m.id === id);
-    if (!meta) return false;
+    try {
+      // 1. Buscar dados atualizados da meta no Supabase
+      const { data: metaAtual, error: fetchErr } = await supabase
+        .from('metas_macro')
+        .select('id, progresso_atual, progresso_alvo, status')
+        .eq('id', id)
+        .eq('id_usuario', user.id)
+        .single();
 
-    const novoProgresso = Math.min(meta.progresso_alvo, meta.progresso_atual + quantidade);
-    const novoStatus = novoProgresso >= meta.progresso_alvo ? 'concluida' : meta.status;
+      if (fetchErr || !metaAtual) {
+        console.error('Meta vinculada não encontrada:', fetchErr);
+        return false;
+      }
 
-    return updateMeta(id, {
-      progresso_atual: novoProgresso,
-      status: novoStatus,
-    });
+      // 2. Calcular novo progresso sem permitir valores abaixo de 0
+      const novoProgresso = Math.max(0, (metaAtual.progresso_atual || 0) + delta);
+      let novoStatus = metaAtual.status;
+
+      if (novoProgresso >= metaAtual.progresso_alvo) {
+        novoStatus = 'concluida';
+      } else if (metaAtual.status === 'concluida' && novoProgresso < metaAtual.progresso_alvo) {
+        novoStatus = 'em_andamento';
+      }
+
+      // 3. Atualização otimista no estado local
+      setMetas((prev) =>
+        prev.map((m) =>
+          m.id === id ? { ...m, progresso_atual: novoProgresso, status: novoStatus } : m
+        )
+      );
+
+      // 4. Persistir atualização no Supabase
+      const { error: updateErr } = await supabase
+        .from('metas_macro')
+        .update({
+          progresso_atual: novoProgresso,
+          status: novoStatus,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', id)
+        .eq('id_usuario', user.id);
+
+      if (updateErr) {
+        console.error('Erro ao atualizar progresso da meta:', updateErr);
+        await fetchMetas();
+        return false;
+      }
+
+      await fetchMetas();
+      return true;
+    } catch (err) {
+      console.error('Erro em ajustarProgresso:', err);
+      return false;
+    }
+  };
+
+  const incrementarProgresso = async (id: string, quantidade: number = 1) => {
+    return ajustarProgresso(id, quantidade);
   };
 
   return (
@@ -187,6 +236,7 @@ export const MetasProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         updateMeta,
         deleteMeta,
         incrementarProgresso,
+        ajustarProgresso,
       }}
     >
       {children}
