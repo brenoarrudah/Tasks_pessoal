@@ -168,6 +168,11 @@ export const TaskModal: React.FC<TaskModalProps> = ({
         termino_ocorrencias: recurrence.termino_ocorrencias,
       };
 
+      const atributoValido: AtributoRpg | null =
+        atributoAlvo && ['STR', 'INT', 'SPR', 'CHA', 'PER'].includes(atributoAlvo)
+          ? (atributoAlvo as AtributoRpg)
+          : null;
+
       if (taskToEdit) {
         await updateTask(taskToEdit.id, {
           titulo: titulo.trim(),
@@ -177,7 +182,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
           prioridade,
           id_area: idArea || null,
           id_meta_vinculada: idMetaVinculada || null,
-          atributo_alvo: (atributoAlvo as AtributoRpg) || null,
+          atributo_alvo: atributoValido,
           ...recurrenceData,
         });
       } else {
@@ -189,13 +194,14 @@ export const TaskModal: React.FC<TaskModalProps> = ({
           prioridade,
           id_area: idArea || null,
           id_meta_vinculada: idMetaVinculada || null,
-          atributo_alvo: (atributoAlvo as AtributoRpg) || null,
+          atributo_alvo: atributoValido,
           ...recurrenceData,
         });
       }
 
       onClose();
     } catch (err: unknown) {
+      console.error("Erro Supabase:", err);
       setError('Falha ao salvar a tarefa. Verifique as informações.');
     } finally {
       setLoading(false);

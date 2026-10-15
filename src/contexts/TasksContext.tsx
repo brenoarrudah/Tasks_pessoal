@@ -218,6 +218,7 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       await fetchTasks();
       return inserted;
     } catch (err: unknown) {
+      console.error("Erro Supabase:", err);
       throw err;
     }
   };
@@ -241,6 +242,7 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       ocorrencias_realizadas?: number;
       id_meta_vinculada?: string | null;
       recompensa_xp?: number;
+      atributo_alvo?: AtributoRpg | null;
     }
   ) => {
     if (!user) return false;
@@ -286,6 +288,7 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       await fetchTasks();
       return true;
     } catch (err: unknown) {
+      console.error("Erro Supabase:", err);
       throw err;
     }
   };
