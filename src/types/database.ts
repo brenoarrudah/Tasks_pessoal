@@ -2,6 +2,7 @@ export type RepeticaoTipo = 'dia' | 'semana' | 'mes' | 'ano';
 export type TerminoTipo = 'nunca' | 'data' | 'ocorrencias';
 export type PrioridadeTipo = 'alta' | 'media' | 'baixa';
 export type MetaStatus = 'em_andamento' | 'concluida' | 'pausada' | 'cancelada';
+export type AtributoRpg = 'STR' | 'INT' | 'SPR' | 'CHA' | 'PER';
 
 /**
  * Perfil de Gamificação do Usuário
@@ -14,6 +15,11 @@ export interface GamificacaoPerfil {
   moedas: number;
   streak_atual: number;
   ultima_ofensiva_data?: string | null; // 'YYYY-MM-DD'
+  atributo_str?: number;
+  atributo_int?: number;
+  atributo_spr?: number;
+  atributo_cha?: number;
+  atributo_per?: number;
   created_at?: string;
   updated_at?: string;
 }
@@ -63,6 +69,7 @@ export interface Task {
   ocorrencias_realizadas?: number;
   id_meta_vinculada?: string | null;
   recompensa_xp?: number;
+  atributo_alvo?: AtributoRpg | null;
   created_at: string;
   updated_at: string;
   subtarefas?: Subtask[];

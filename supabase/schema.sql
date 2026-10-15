@@ -59,6 +59,12 @@ CREATE TABLE IF NOT EXISTS public.gamificacao_perfil (
     xp_acumulado INTEGER NOT NULL DEFAULT 0,
     moedas INTEGER NOT NULL DEFAULT 0,
     streak_atual INTEGER NOT NULL DEFAULT 0,
+    ultima_ofensiva_data DATE,
+    atributo_str INTEGER NOT NULL DEFAULT 0,
+    atributo_int INTEGER NOT NULL DEFAULT 0,
+    atributo_spr INTEGER NOT NULL DEFAULT 0,
+    atributo_cha INTEGER NOT NULL DEFAULT 0,
+    atributo_per INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -85,6 +91,7 @@ CREATE TABLE IF NOT EXISTS public.crm_tarefas (
     termino_ocorrencias INTEGER,
     ocorrencias_realizadas INTEGER NOT NULL DEFAULT 0,
     recompensa_xp INTEGER NOT NULL DEFAULT 10,
+    atributo_alvo VARCHAR(10) CHECK (atributo_alvo IS NULL OR atributo_alvo IN ('STR', 'INT', 'SPR', 'CHA', 'PER')),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

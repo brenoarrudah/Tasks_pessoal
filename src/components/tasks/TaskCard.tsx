@@ -157,10 +157,33 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) =>
                 title={`Meta Macro: ${linkedMeta.titulo} (${linkedMeta.progresso_atual}/${linkedMeta.progresso_alvo} pts)`}
                 className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-emerald-950/60 border border-emerald-800/60 text-emerald-300 flex items-center gap-1 shrink-0"
               >
-                <Target className="w-3 h-3 text-emerald-400 shrink-0" />
+                <Target className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                 <span className="truncate max-w-[120px]">{linkedMeta.titulo}</span>
                 <span className="text-[9px] text-emerald-400/90 font-mono font-semibold">
                   ({linkedMeta.progresso_atual}/{linkedMeta.progresso_alvo})
+                </span>
+              </span>
+            )}
+
+            {/* Badge de Atributo RPG */}
+            {task.atributo_alvo && (
+              <span 
+                title={`Atributo RPG: +1 ponto em ${task.atributo_alvo}`}
+                className={cn(
+                  "text-[10px] font-semibold px-2 py-0.5 rounded-full border flex items-center gap-1 shrink-0",
+                  task.atributo_alvo === 'STR' && "bg-rose-500/10 text-rose-300 border-rose-500/20",
+                  task.atributo_alvo === 'INT' && "bg-cyan-500/10 text-cyan-300 border-cyan-500/20",
+                  task.atributo_alvo === 'SPR' && "bg-purple-500/10 text-purple-300 border-purple-500/20",
+                  task.atributo_alvo === 'CHA' && "bg-amber-500/10 text-amber-300 border-amber-500/20",
+                  task.atributo_alvo === 'PER' && "bg-emerald-500/10 text-emerald-300 border-emerald-500/20"
+                )}
+              >
+                <span>
+                  {task.atributo_alvo === 'STR' && '⚔️ STR'}
+                  {task.atributo_alvo === 'INT' && '🧠 INT'}
+                  {task.atributo_alvo === 'SPR' && '✨ SPR'}
+                  {task.atributo_alvo === 'CHA' && '👑 CHA'}
+                  {task.atributo_alvo === 'PER' && '👁️ PER'}
                 </span>
               </span>
             )}

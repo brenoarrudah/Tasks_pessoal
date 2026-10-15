@@ -20,8 +20,9 @@ export type {
   Task,
   Tarefa,
   Subtarefa,
+  AtributoRpg,
 } from '@/types';
-import type { Task, Subtask, RepeticaoTipo, TerminoTipo } from '@/types';
+import type { Task, Subtask, RepeticaoTipo, TerminoTipo, AtributoRpg } from '@/types';
 
 interface TasksContextType {
   tasks: Task[];
@@ -45,6 +46,7 @@ interface TasksContextType {
     ocorrencias_realizadas?: number;
     id_meta_vinculada?: string | null;
     recompensa_xp?: number;
+    atributo_alvo?: AtributoRpg | null;
   }) => Promise<Task | null>;
   updateTask: (
     id: string,
@@ -65,6 +67,7 @@ interface TasksContextType {
       ocorrencias_realizadas?: number;
       id_meta_vinculada?: string | null;
       recompensa_xp?: number;
+      atributo_alvo?: AtributoRpg | null;
     }
   ) => Promise<boolean>;
   toggleTaskComplete: (id: string, currentCompleted: boolean) => Promise<boolean>;
@@ -89,7 +92,7 @@ const TasksContext = createContext<TasksContextType | undefined>(undefined);
 export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
   const { ajustarProgresso } = useMetas();
-  const { ajustarXp, registrarVitoriaDiaria } = useGamificacao();
+  const { ajustarXp, ajustarAtributo, registrarVitoriaDiaria } = useGamificacao();
   const { areas } = useAreas();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -167,6 +170,7 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     ocorrencias_realizadas?: number;
     id_meta_vinculada?: string | null;
     recompensa_xp?: number;
+    atributo_alvo?: AtributoRpg | null;
   }) => {
     if (!user) return null;
 
@@ -200,6 +204,7 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         ocorrencias_realizadas: data.ocorrencias_realizadas ?? 0,
         id_meta_vinculada: data.id_meta_vinculada || null,
         recompensa_xp: data.recompensa_xp ?? 10,
+        atributo_alvo: data.atributo_alvo || null,
       };
 
       const { data: inserted, error: insertErr } = await supabase
@@ -266,6 +271,7 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         ...(data.ocorrencias_realizadas !== undefined && { ocorrencias_realizadas: data.ocorrencias_realizadas }),
         ...(data.id_meta_vinculada !== undefined && { id_meta_vinculada: data.id_meta_vinculada || null }),
         ...(data.recompensa_xp !== undefined && { recompensa_xp: data.recompensa_xp }),
+        ...(data.atributo_alvo !== undefined && { atributo_alvo: data.atributo_alvo || null }),
         updated_at: new Date().toISOString(),
       };
 
@@ -318,6 +324,12 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (task) {
         const xp = task.recompensa_xp ?? 10;
         await ajustarXp(newCompleted ? xp : -xp);
+      }
+
+      // Ganho/Perda de Atributo RPG do jogador (Etapa 7)
+      if (task && task.atributo_alvo) {
+        const delta = newCompleted ? 1 : -1;
+        await ajustarAtributo(task.atributo_alvo, delta);
       }
 
       // Condição de Vitória Diária (Streak): todas as Daily Quests de HOJE concluídas.
@@ -393,6 +405,7 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             ocorrencias_realizadas: (task.ocorrencias_realizadas || 0) + 1,
             id_meta_vinculada: task.id_meta_vinculada || null,
             recompensa_xp: task.recompensa_xp ?? 10,
+            atributo_alvo: task.atributo_alvo || null,
           };
 
           const { data: createdTask, error: insertCopyErr } = await supabase

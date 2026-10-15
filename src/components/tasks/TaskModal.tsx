@@ -9,7 +9,8 @@ import {
   Flag, 
   RotateCcw,
   Clock,
-  Target
+  Target,
+  Sparkles
 } from 'lucide-react';
 import { useTasks, Task } from '@/contexts/TasksContext';
 import { useAreas } from '@/contexts/AreasContext';
@@ -19,6 +20,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { RecurrenceModal, RecurrenceConfig } from './RecurrenceModal';
 import { parseLocalDateSaoPaulo } from '@/lib/dateUtils';
+import type { AtributoRpg } from '@/types';
 
 interface TaskModalProps {
   isOpen: boolean;
@@ -55,6 +57,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   const [prioridade, setPrioridade] = useState<'alta' | 'media' | 'baixa'>('media');
   const [idArea, setIdArea] = useState<string>('');
   const [idMetaVinculada, setIdMetaVinculada] = useState<string>('');
+  const [atributoAlvo, setAtributoAlvo] = useState<AtributoRpg | ''>('');
   
   // Estado de Recorrência
   const [recurrence, setRecurrence] = useState<RecurrenceConfig>(defaultRecurrence);
@@ -80,6 +83,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
       setPrioridade(taskToEdit.prioridade || 'media');
       setIdArea(taskToEdit.id_area || '');
       setIdMetaVinculada(taskToEdit.id_meta_vinculada || '');
+      setAtributoAlvo(taskToEdit.atributo_alvo || '');
       setRecurrence({
         recorrente: !!taskToEdit.recorrente,
         repeticao_intervalo: taskToEdit.repeticao_intervalo || 1,
@@ -97,6 +101,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
       setPrioridade('media');
       setIdArea(defaultAreaId || (areas.length > 0 ? areas[0].id : ''));
       setIdMetaVinculada('');
+      setAtributoAlvo('');
       setRecurrence(defaultRecurrence);
     }
     setError(null);
@@ -172,6 +177,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
           prioridade,
           id_area: idArea || null,
           id_meta_vinculada: idMetaVinculada || null,
+          atributo_alvo: (atributoAlvo as AtributoRpg) || null,
           ...recurrenceData,
         });
       } else {
@@ -183,6 +189,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
           prioridade,
           id_area: idArea || null,
           id_meta_vinculada: idMetaVinculada || null,
+          atributo_alvo: (atributoAlvo as AtributoRpg) || null,
           ...recurrenceData,
         });
       }
@@ -299,24 +306,49 @@ export const TaskModal: React.FC<TaskModalProps> = ({
 
             </div>
 
-            {/* Vínculo com Meta Macro */}
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300 mb-1.5 flex items-center gap-1.5">
-                <Target className="w-3.5 h-3.5 text-blue-400" />
-                Vincular a uma Meta Macro (Objetivo)
-              </label>
-              <select
-                value={idMetaVinculada}
-                onChange={(e) => setIdMetaVinculada(e.target.value)}
-                className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-zinc-100 text-sm focus:outline-none focus:border-blue-500 transition-colors cursor-pointer"
-              >
-                <option value="">Nenhuma meta vinculada (Tarefa avulsa)</option>
-                {activeMetas.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    🎯 {m.titulo} ({m.progresso_atual}/{m.progresso_alvo} pts)
-                  </option>
-                ))}
-              </select>
+            {/* Grid: Atributo de Evolução RPG + Vínculo com Meta Macro */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              
+              {/* Atributo de Evolução */}
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300 mb-1.5 flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                  Atributo de Evolução
+                </label>
+                <select
+                  value={atributoAlvo}
+                  onChange={(e) => setAtributoAlvo(e.target.value as AtributoRpg | '')}
+                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-zinc-100 text-sm focus:outline-none focus:border-blue-500 transition-colors cursor-pointer"
+                >
+                  <option value="">Apenas XP Geral (Nenhum)</option>
+                  <option value="STR">⚔️ Força / Vitalidade (STR)</option>
+                  <option value="INT">🧠 Inteligência / Foco (INT)</option>
+                  <option value="SPR">✨ Espírito / Sabedoria (SPR)</option>
+                  <option value="CHA">👑 Carisma / Liderança (CHA)</option>
+                  <option value="PER">👁️ Percepção / Organização (PER)</option>
+                </select>
+              </div>
+
+              {/* Vínculo com Meta Macro */}
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300 mb-1.5 flex items-center gap-1.5">
+                  <Target className="w-3.5 h-3.5 text-blue-400" />
+                  Vincular a Meta Macro
+                </label>
+                <select
+                  value={idMetaVinculada}
+                  onChange={(e) => setIdMetaVinculada(e.target.value)}
+                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-zinc-100 text-sm focus:outline-none focus:border-blue-500 transition-colors cursor-pointer"
+                >
+                  <option value="">Nenhuma meta (Avulsa)</option>
+                  {activeMetas.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      🎯 {m.titulo} ({m.progresso_atual}/{m.progresso_alvo} pts)
+                    </option>
+                  ))}
+                </select>
+              </div>
+
             </div>
 
             {/* Prazo e Recorrência (Estilo Google Tasks) */}

@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { Flame } from 'lucide-react';
 import { useAuth } from './AuthContext';
 import { getTodaySaoPauloString, parseLocalDateSaoPaulo } from '@/lib/dateUtils';
-import type { GamificacaoPerfil } from '@/types';
+import type { GamificacaoPerfil, AtributoRpg } from '@/types';
 
 /** Diferença em dias inteiros entre duas datas 'YYYY-MM-DD' (b - a) */
 const diffDias = (a: string, b: string): number => {
@@ -26,11 +26,20 @@ export const calcularNivel = (xp: number): number => {
   return nivel;
 };
 
+const mapaAtributoColuna: Record<AtributoRpg, keyof GamificacaoPerfil> = {
+  STR: 'atributo_str',
+  INT: 'atributo_int',
+  SPR: 'atributo_spr',
+  CHA: 'atributo_cha',
+  PER: 'atributo_per',
+};
+
 interface GamificacaoContextType {
   perfil: GamificacaoPerfil | null;
   loading: boolean;
   fetchPerfil: () => Promise<void>;
   ajustarXp: (delta: number) => Promise<boolean>;
+  ajustarAtributo: (atributo: AtributoRpg, delta: number) => Promise<boolean>;
   registrarVitoriaDiaria: () => Promise<boolean>;
 }
 
@@ -59,6 +68,15 @@ export const GamificacaoProvider: React.FC<{ children: React.ReactNode }> = ({ c
       if (error) throw error;
 
       if (data) {
+        const perfilNormalizado: GamificacaoPerfil = {
+          ...data,
+          atributo_str: data.atributo_str ?? 0,
+          atributo_int: data.atributo_int ?? 0,
+          atributo_spr: data.atributo_spr ?? 0,
+          atributo_cha: data.atributo_cha ?? 0,
+          atributo_per: data.atributo_per ?? 0,
+        };
+
         // Aversão à perda: se falhou o dia de ontem inteiro (diferença > 1 dia), zera a ofensiva
         const hoje = getTodaySaoPauloString();
         if (
@@ -71,15 +89,26 @@ export const GamificacaoProvider: React.FC<{ children: React.ReactNode }> = ({ c
             .update({ streak_atual: 0, updated_at: new Date().toISOString() })
             .eq('id', user.id);
           if (resetErr) throw resetErr;
-          setPerfil({ ...data, streak_atual: 0 });
+          setPerfil({ ...perfilNormalizado, streak_atual: 0 });
         } else {
-          setPerfil(data);
+          setPerfil(perfilNormalizado);
         }
       } else {
         // Cria o perfil caso ainda não exista para este usuário
         const { data: created, error: insertErr } = await supabase
           .from('gamificacao_perfil')
-          .insert({ id: user.id, nivel_atual: 1, xp_acumulado: 0, moedas: 0, streak_atual: 0 })
+          .insert({
+            id: user.id,
+            nivel_atual: 1,
+            xp_acumulado: 0,
+            moedas: 0,
+            streak_atual: 0,
+            atributo_str: 0,
+            atributo_int: 0,
+            atributo_spr: 0,
+            atributo_cha: 0,
+            atributo_per: 0,
+          })
           .select()
           .single();
         if (insertErr) throw insertErr;
@@ -136,6 +165,46 @@ export const GamificacaoProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   };
 
+  const ajustarAtributo = async (atributo: AtributoRpg, delta: number) => {
+    if (!user || !delta || !atributo) return false;
+
+    const coluna = mapaAtributoColuna[atributo];
+    if (!coluna) return false;
+
+    try {
+      // Valor mais recente do banco para evitar divergência
+      const { data: atual, error: fetchErr } = await supabase
+        .from('gamificacao_perfil')
+        .select(coluna)
+        .eq('id', user.id)
+        .maybeSingle();
+      if (fetchErr) throw fetchErr;
+
+      const valorAtual = Number(atual?.[coluna as keyof typeof atual] ?? perfil?.[coluna] ?? 0);
+      const novoValor = Math.max(0, valorAtual + delta);
+
+      // Atualização otimista
+      setPerfil((prev) => (prev ? { ...prev, [coluna]: novoValor } : prev));
+
+      const { error: updateErr } = await supabase
+        .from('gamificacao_perfil')
+        .update({
+          [coluna]: novoValor,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', user.id);
+
+      if (updateErr) {
+        await fetchPerfil();
+        throw updateErr;
+      }
+      return true;
+    } catch {
+      notifyError();
+      return false;
+    }
+  };
+
   const registrarVitoriaDiaria = async () => {
     if (!user) return false;
 
@@ -182,7 +251,7 @@ export const GamificacaoProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   return (
     <GamificacaoContext.Provider
-      value={{ perfil, loading, fetchPerfil, ajustarXp, registrarVitoriaDiaria }}
+      value={{ perfil, loading, fetchPerfil, ajustarXp, ajustarAtributo, registrarVitoriaDiaria }}
     >
       {children}
 
