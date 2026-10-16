@@ -5,7 +5,7 @@ import { Flame, Crown } from 'lucide-react';
 import { useAuth } from './AuthContext';
 import { getTodaySaoPauloString, parseLocalDateSaoPaulo } from '@/lib/dateUtils';
 import { dispararConfetesLevelUp } from '@/lib/confetti';
-import type { GamificacaoPerfil, AtributoRpg } from '@/types';
+import type { GamificacaoPerfil, AtributoRpg, PrioridadeTipo } from '@/types';
 
 /** Diferença em dias inteiros entre duas datas 'YYYY-MM-DD' (b - a) */
 const diffDias = (a: string, b: string): number => {
@@ -41,6 +41,8 @@ interface GamificacaoContextType {
   fetchPerfil: () => Promise<void>;
   ajustarXp: (delta: number) => Promise<boolean>;
   ajustarAtributo: (atributo: AtributoRpg, delta: number) => Promise<boolean>;
+  consumirEnergiaTarefa: (prioridade?: PrioridadeTipo, atributo?: AtributoRpg | null, isConclusao?: boolean) => Promise<boolean>;
+  descansarCompleto: () => Promise<boolean>;
   registrarVitoriaDiaria: () => Promise<boolean>;
 }
 
@@ -77,6 +79,10 @@ export const GamificacaoProvider: React.FC<{ children: React.ReactNode }> = ({ c
           atributo_spr: data.atributo_spr ?? 0,
           atributo_cha: data.atributo_cha ?? 0,
           atributo_per: data.atributo_per ?? 0,
+          hp_atual: data.hp_atual ?? 100,
+          hp_maximo: data.hp_maximo ?? 100,
+          mp_atual: data.mp_atual ?? 50,
+          mp_maximo: data.mp_maximo ?? 50,
         };
 
         // Aversão à perda: se falhou o dia de ontem inteiro (diferença > 1 dia), zera a ofensiva
@@ -110,6 +116,10 @@ export const GamificacaoProvider: React.FC<{ children: React.ReactNode }> = ({ c
             atributo_spr: 0,
             atributo_cha: 0,
             atributo_per: 0,
+            hp_atual: 100,
+            hp_maximo: 100,
+            mp_atual: 50,
+            mp_maximo: 50,
           })
           .select()
           .single();
@@ -259,9 +269,109 @@ export const GamificacaoProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   };
 
+  const consumirEnergiaTarefa = async (
+    prioridade: PrioridadeTipo = 'media',
+    atributo?: AtributoRpg | null,
+    isConclusao: boolean = true
+  ) => {
+    if (!user) return false;
+
+    // Regra Base de Custo: Alta = 15, Média = 10, Baixa = 5
+    const custo = prioridade === 'alta' ? 15 : prioridade === 'baixa' ? 5 : 10;
+    const delta = isConclusao ? -custo : custo;
+
+    // Filtro de Atributo: STR ou sem atributo -> hp_atual; INT, PER, SPR, CHA -> mp_atual
+    const isFisico = !atributo || atributo === 'STR';
+    const campoAtual = isFisico ? 'hp_atual' : 'mp_atual';
+    const campoMaximo = isFisico ? 'hp_maximo' : 'mp_maximo';
+
+    try {
+      const { data: atual, error: fetchErr } = await supabase
+        .from('gamificacao_perfil')
+        .select(`${campoAtual}, ${campoMaximo}`)
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (fetchErr) throw fetchErr;
+
+      const defaultMax = isFisico ? 100 : 50;
+      const valAtual = Number(atual?.[campoAtual as keyof typeof atual] ?? perfil?.[campoAtual] ?? defaultMax);
+      const valMaximo = Number(atual?.[campoMaximo as keyof typeof atual] ?? perfil?.[campoMaximo] ?? defaultMax);
+      const novoValor = Math.max(0, Math.min(valMaximo, valAtual + delta));
+
+      setPerfil((prev) => (prev ? { ...prev, [campoAtual]: novoValor } : prev));
+
+      const { error: updateErr } = await supabase
+        .from('gamificacao_perfil')
+        .update({
+          [campoAtual]: novoValor,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', user.id);
+
+      if (updateErr) {
+        await fetchPerfil();
+        throw updateErr;
+      }
+      return true;
+    } catch {
+      notifyError();
+      return false;
+    }
+  };
+
+  const descansarCompleto = async () => {
+    if (!user) return false;
+
+    try {
+      const { data: atual, error: fetchErr } = await supabase
+        .from('gamificacao_perfil')
+        .select('hp_maximo, mp_maximo')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (fetchErr) throw fetchErr;
+
+      const hpMax = Number(atual?.hp_maximo ?? perfil?.hp_maximo ?? 100);
+      const mpMax = Number(atual?.mp_maximo ?? perfil?.mp_maximo ?? 50);
+
+      setPerfil((prev) => (prev ? { ...prev, hp_atual: hpMax, mp_atual: mpMax } : prev));
+
+      const { error: updateErr } = await supabase
+        .from('gamificacao_perfil')
+        .update({
+          hp_atual: hpMax,
+          mp_atual: mpMax,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', user.id);
+
+      if (updateErr) {
+        await fetchPerfil();
+        throw updateErr;
+      }
+
+      setCelebracao('HP e MP totalmente restaurados! 🏕️💤');
+      setTimeout(() => setCelebracao(null), 4500);
+      return true;
+    } catch {
+      notifyError();
+      return false;
+    }
+  };
+
   return (
     <GamificacaoContext.Provider
-      value={{ perfil, loading, fetchPerfil, ajustarXp, ajustarAtributo, registrarVitoriaDiaria }}
+      value={{
+        perfil,
+        loading,
+        fetchPerfil,
+        ajustarXp,
+        ajustarAtributo,
+        consumirEnergiaTarefa,
+        descansarCompleto,
+        registrarVitoriaDiaria,
+      }}
     >
       {children}
 

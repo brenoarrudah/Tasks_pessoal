@@ -20,6 +20,10 @@ export interface GamificacaoPerfil {
   atributo_spr?: number;
   atributo_cha?: number;
   atributo_per?: number;
+  hp_atual?: number;
+  hp_maximo?: number;
+  mp_atual?: number;
+  mp_maximo?: number;
   created_at?: string;
   updated_at?: string;
 }

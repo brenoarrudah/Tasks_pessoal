@@ -92,7 +92,7 @@ const TasksContext = createContext<TasksContextType | undefined>(undefined);
 export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
   const { ajustarProgresso } = useMetas();
-  const { ajustarXp, ajustarAtributo, registrarVitoriaDiaria } = useGamificacao();
+  const { ajustarXp, ajustarAtributo, consumirEnergiaTarefa, registrarVitoriaDiaria } = useGamificacao();
   const { areas } = useAreas();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -333,6 +333,11 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (task && task.atributo_alvo) {
         const delta = newCompleted ? 1 : -1;
         await ajustarAtributo(task.atributo_alvo, delta);
+      }
+
+      // Consumo de Energia Física (HP) ou Mental (MP) e Fadiga (Etapa 9)
+      if (task) {
+        await consumirEnergiaTarefa(task.prioridade, task.atributo_alvo, newCompleted);
       }
 
       // Condição de Vitória Diária (Streak): todas as Daily Quests de HOJE concluídas.

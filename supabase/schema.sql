@@ -65,6 +65,10 @@ CREATE TABLE IF NOT EXISTS public.gamificacao_perfil (
     atributo_spr INTEGER NOT NULL DEFAULT 0,
     atributo_cha INTEGER NOT NULL DEFAULT 0,
     atributo_per INTEGER NOT NULL DEFAULT 0,
+    hp_atual INTEGER NOT NULL DEFAULT 100,
+    hp_maximo INTEGER NOT NULL DEFAULT 100,
+    mp_atual INTEGER NOT NULL DEFAULT 50,
+    mp_maximo INTEGER NOT NULL DEFAULT 50,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Flame, Shield, Zap, Brain, Sparkles, Users, Target } from 'lucide-react';
+import { Flame, Shield, Zap, Brain, Sparkles, Users, Target, Heart, Bed } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { useGamificacao, xpParaAtingirNivel } from '@/contexts/GamificacaoContext';
 import { cn } from '@/lib/utils';
@@ -63,7 +63,7 @@ const ATRIBUTOS_RPG = [
 ];
 
 export const PlayerStatusCard: React.FC = () => {
-  const { perfil, loading } = useGamificacao();
+  const { perfil, loading, descansarCompleto } = useGamificacao();
 
   if (loading || !perfil) {
     return (
@@ -76,6 +76,14 @@ export const PlayerStatusCard: React.FC = () => {
   const xpProximoNivel = xpParaAtingirNivel(nivel + 1);
   const progressoNivel =
     ((perfil.xp_acumulado - xpInicioNivel) / (xpProximoNivel - xpInicioNivel)) * 100;
+
+  const hpAtual = perfil.hp_atual ?? 100;
+  const hpMaximo = perfil.hp_maximo ?? 100;
+  const mpAtual = perfil.mp_atual ?? 50;
+  const mpMaximo = perfil.mp_maximo ?? 50;
+
+  const progressoHp = hpMaximo > 0 ? Math.min(100, Math.max(0, (hpAtual / hpMaximo) * 100)) : 0;
+  const progressoMp = mpMaximo > 0 ? Math.min(100, Math.max(0, (mpAtual / mpMaximo) * 100)) : 0;
 
   const totalAtributos =
     (perfil.atributo_str ?? 0) +
@@ -91,10 +99,10 @@ export const PlayerStatusCard: React.FC = () => {
     >
       <div className="absolute -top-10 -left-10 w-44 h-44 bg-indigo-600/15 rounded-full blur-3xl pointer-events-none" />
 
-      {/* Topo: Nível, XP e Streak */}
-      <div className="relative z-10 flex flex-col sm:flex-row sm:items-center gap-5">
+      {/* Topo: Nível, XP, Barras de Sobrevivência (HP/MP) e Streak */}
+      <div className="relative z-10 flex flex-col lg:flex-row lg:items-center gap-5">
         {/* Escudo de Nível */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 shrink-0">
           <div className="relative w-16 h-16 shrink-0 rounded-2xl bg-indigo-500/15 border border-indigo-400/30 flex items-center justify-center shadow-lg shadow-indigo-900/40">
             <Shield className="w-14 h-14 text-indigo-400/30 absolute" />
             <span className="text-2xl font-extrabold text-indigo-200 relative">{nivel}</span>
@@ -105,33 +113,90 @@ export const PlayerStatusCard: React.FC = () => {
           </div>
         </div>
 
-        {/* Barra de XP */}
-        <div className="flex-1 min-w-0 space-y-2">
-          <div className="flex items-center justify-between text-xs">
-            <span className="flex items-center gap-1.5 font-semibold text-zinc-300">
-              <Zap className="w-3.5 h-3.5 text-amber-400" />
-              XP: {perfil.xp_acumulado} / {xpProximoNivel}
-            </span>
-            <span className="text-zinc-500">
-              faltam {Math.max(0, xpProximoNivel - perfil.xp_acumulado)} XP
-            </span>
+        {/* Centro: Barra de XP + Barras de HP e MP */}
+        <div className="flex-1 min-w-0 space-y-3">
+          {/* Barra de XP */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between text-xs">
+              <span className="flex items-center gap-1.5 font-semibold text-zinc-300">
+                <Zap className="w-3.5 h-3.5 text-amber-400" />
+                XP: {perfil.xp_acumulado} / {xpProximoNivel}
+              </span>
+              <span className="text-zinc-500">
+                faltam {Math.max(0, xpProximoNivel - perfil.xp_acumulado)} XP
+              </span>
+            </div>
+            <Progress
+              value={progressoNivel}
+              className="h-2.5"
+              indicatorClassName="bg-gradient-to-r from-indigo-500 to-amber-400"
+            />
           </div>
-          <Progress
-            value={progressoNivel}
-            className="h-3"
-            indicatorClassName="bg-gradient-to-r from-indigo-500 to-amber-400"
-          />
+
+          {/* Barras de Status de Sobrevivência: HP (Vermelho) e MP (Azul) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-0.5">
+            {/* Barra de HP: Vermelha vibrante */}
+            <div className="space-y-1.5 bg-zinc-950/60 border border-red-500/30 rounded-xl p-2.5 shadow-inner">
+              <div className="flex items-center justify-between text-xs">
+                <span className="flex items-center gap-1.5 font-bold text-red-400">
+                  <Heart className="w-3.5 h-3.5 fill-red-500/30 text-red-500 animate-pulse" />
+                  HP: {hpAtual} / {hpMaximo}
+                </span>
+                <span className="text-[11px] font-mono text-red-400/90 font-bold">
+                  {hpAtual === 0 ? 'Exausto! ⚠️' : `${Math.round(progressoHp)}%`}
+                </span>
+              </div>
+              <div className="h-2.5 w-full bg-zinc-900 rounded-full overflow-hidden border border-red-950/80">
+                <div
+                  className="h-full bg-gradient-to-r from-red-600 via-red-500 to-rose-500 rounded-full transition-all duration-500 shadow-sm shadow-red-500/50"
+                  style={{ width: `${progressoHp}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Barra de MP: Azul brilhante */}
+            <div className="space-y-1.5 bg-zinc-950/60 border border-blue-500/30 rounded-xl p-2.5 shadow-inner">
+              <div className="flex items-center justify-between text-xs">
+                <span className="flex items-center gap-1.5 font-bold text-blue-400">
+                  <Sparkles className="w-3.5 h-3.5 text-blue-400" />
+                  MP: {mpAtual} / {mpMaximo}
+                </span>
+                <span className="text-[11px] font-mono text-blue-400/90 font-bold">
+                  {mpAtual === 0 ? 'Esgotado! ⚠️' : `${Math.round(progressoMp)}%`}
+                </span>
+              </div>
+              <div className="h-2.5 w-full bg-zinc-900 rounded-full overflow-hidden border border-blue-950/80">
+                <div
+                  className="h-full bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-400 rounded-full transition-all duration-500 shadow-sm shadow-blue-500/50"
+                  style={{ width: `${progressoMp}%` }}
+                />
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Streak */}
-        <div className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-orange-500/10 border border-orange-500/20 self-start sm:self-auto">
-          <Flame className="w-5 h-5 text-orange-400" />
-          <div className="leading-tight">
-            <p className="text-lg font-bold text-orange-300">🔥 {perfil.streak_atual}</p>
-            <p className="text-[10px] uppercase tracking-wider text-orange-400/80">
-              {perfil.streak_atual === 1 ? 'dia de ofensiva' : 'dias de ofensiva'}
-            </p>
+        {/* Lado Direito: Streak e Botão A Taverna (Cura Completa) */}
+        <div className="flex flex-row lg:flex-col items-stretch gap-2.5 self-start lg:self-auto shrink-0">
+          {/* Streak */}
+          <div className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-orange-500/10 border border-orange-500/20">
+            <Flame className="w-5 h-5 text-orange-400" />
+            <div className="leading-tight">
+              <p className="text-base font-bold text-orange-300">🔥 {perfil.streak_atual}</p>
+              <p className="text-[10px] uppercase tracking-wider text-orange-400/80">
+                {perfil.streak_atual === 1 ? 'dia de ofensiva' : 'dias de ofensiva'}
+              </p>
+            </div>
           </div>
+
+          {/* A Taverna: Botão de Cura Completa (Descansar) */}
+          <button
+            onClick={() => descansarCompleto()}
+            className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 active:bg-amber-500/35 border border-amber-500/35 text-amber-200 text-xs font-bold shadow-sm hover:shadow-amber-500/20 transition-all cursor-pointer group"
+            title="Recupera todo HP e MP (A Taverna)"
+          >
+            <Bed className="w-4 h-4 text-amber-400 group-hover:scale-110 transition-transform" />
+            <span>Cura Completa (Descansar)</span>
+          </button>
         </div>
       </div>
 

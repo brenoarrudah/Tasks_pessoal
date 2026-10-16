@@ -10,9 +10,11 @@ import {
   Flame,
   Award,
   X,
-  Sparkles
+  Sparkles,
+  Bed
 } from 'lucide-react';
 import { useTasks, Task } from '@/contexts/TasksContext';
+import { useGamificacao } from '@/contexts/GamificacaoContext';
 import { TaskCard } from '@/components/tasks/TaskCard';
 import { TaskModal } from '@/components/tasks/TaskModal';
 import { PlayerStatusCard } from '@/components/gamificacao/PlayerStatusCard';
@@ -37,6 +39,7 @@ export const Dashboard: React.FC = () => {
     openEditTaskModal,
     closeTaskModal
   } = useTasks();
+  const { descansarCompleto } = useGamificacao();
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
@@ -129,13 +132,24 @@ export const Dashboard: React.FC = () => {
           </p>
         </div>
 
-        <button
-          onClick={() => openCreateTaskModal()}
-          className="bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-medium px-4 py-2.5 rounded-xl shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2 transition-all cursor-pointer text-sm self-start sm:self-auto"
-        >
-          <Plus className="w-4 h-4 stroke-[2.5]" />
-          <span>Nova Tarefa</span>
-        </button>
+        <div className="flex items-center gap-2.5 self-start sm:self-auto">
+          <button
+            onClick={() => descansarCompleto()}
+            className="bg-amber-500/10 hover:bg-amber-500/20 active:bg-amber-500/30 text-amber-300 border border-amber-500/30 font-medium px-3.5 py-2.5 rounded-xl shadow-sm flex items-center justify-center gap-2 transition-all cursor-pointer text-sm"
+            title="Recupera todo HP e MP (A Taverna)"
+          >
+            <Bed className="w-4 h-4 stroke-[2.2] text-amber-400" />
+            <span>Cura Completa (Descansar)</span>
+          </button>
+
+          <button
+            onClick={() => openCreateTaskModal()}
+            className="bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-medium px-4 py-2.5 rounded-xl shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2 transition-all cursor-pointer text-sm"
+          >
+            <Plus className="w-4 h-4 stroke-[2.5]" />
+            <span>Nova Tarefa</span>
+          </button>
+        </div>
       </div>
 
       {/* Status do Perfil Gamificado */}
