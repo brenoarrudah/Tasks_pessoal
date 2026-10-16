@@ -1,8 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Flame, Shield, Zap, Brain, Sparkles, Users, Target, Heart, Bed, Coins } from 'lucide-react';
+import { Flame, Shield, Zap, Brain, Sparkles, Users, Target, Heart, Bed, Coins, Award } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { useGamificacao, xpParaAtingirNivel } from '@/contexts/GamificacaoContext';
+import { useConquistas } from '@/contexts/ConquistasContext';
 import { cn } from '@/lib/utils';
 
 const ATRIBUTOS_RPG = [
@@ -65,6 +66,7 @@ const ATRIBUTOS_RPG = [
 
 export const PlayerStatusCard: React.FC = () => {
   const { perfil, loading, descansarCompleto } = useGamificacao();
+  const { tituloEquipado } = useConquistas();
 
   if (loading || !perfil) {
     return (
@@ -103,15 +105,29 @@ export const PlayerStatusCard: React.FC = () => {
 
       {/* Topo: Nível, XP, Barras de Sobrevivência (HP/MP) e Streak */}
       <div className="relative z-10 flex flex-col lg:flex-row lg:items-center gap-5">
-        {/* Escudo de Nível e Display de Gold */}
+        {/* Escudo de Nível, Título Equipado e Display de Gold */}
         <div className="flex items-center gap-4 shrink-0">
           <div className="relative w-16 h-16 shrink-0 rounded-2xl bg-indigo-500/15 border border-indigo-400/30 flex items-center justify-center shadow-lg shadow-indigo-900/40">
             <Shield className="w-14 h-14 text-indigo-400/30 absolute" />
             <span className="text-2xl font-extrabold text-indigo-200 relative">{nivel}</span>
           </div>
           <div className="space-y-1">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-indigo-300">Nível Atual</p>
-            <p className="text-lg font-bold text-zinc-100">Nível {nivel}</p>
+            {/* Título Equipado */}
+            <div>
+              <Link
+                to="/conquistas"
+                className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-amber-500/15 hover:bg-amber-500/25 active:bg-amber-500/35 border border-amber-400/40 text-amber-200 text-[10px] font-black uppercase tracking-wider shadow-xs shadow-amber-500/10 transition-all cursor-pointer group"
+                title="Galeria de Títulos e Conquistas (Clique para ver/equipar)"
+              >
+                <Award className="w-3 h-3 text-amber-400 group-hover:scale-110 transition-transform" />
+                <span className="truncate max-w-[140px]">
+                  [ {tituloEquipado ? tituloEquipado.titulo : 'Sem Título'} ]
+                </span>
+              </Link>
+            </div>
+
+            <p className="text-lg font-bold text-zinc-100 leading-tight">Nível {nivel}</p>
+
             {/* Display de Gold */}
             <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 shadow-xs shadow-amber-500/10">
               <span className="text-sm">🪙</span>
@@ -215,6 +231,16 @@ export const PlayerStatusCard: React.FC = () => {
           >
             <Coins className="w-3.5 h-3.5 text-amber-400 group-hover:scale-110 transition-transform" />
             <span>O Mercado</span>
+          </Link>
+
+          {/* Títulos e Conquistas */}
+          <Link
+            to="/conquistas"
+            className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-purple-500/20 to-indigo-600/20 hover:from-purple-500/30 hover:to-indigo-600/30 active:from-purple-500/40 active:to-indigo-600/40 border border-purple-500/40 text-purple-200 text-xs font-bold shadow-xs hover:shadow-purple-500/25 transition-all cursor-pointer group"
+            title="Galeria de Títulos e Conquistas"
+          >
+            <Award className="w-3.5 h-3.5 text-amber-400 group-hover:scale-110 transition-transform" />
+            <span>Conquistas</span>
           </Link>
         </div>
       </div>

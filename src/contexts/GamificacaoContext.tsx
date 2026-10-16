@@ -47,6 +47,7 @@ interface GamificacaoContextType {
   consumirEnergiaTarefa: (prioridade?: PrioridadeTipo, atributo?: AtributoRpg | null, isConclusao?: boolean) => Promise<boolean>;
   descansarCompleto: () => Promise<boolean>;
   registrarVitoriaDiaria: () => Promise<boolean>;
+  equiparTituloPerfil: (tituloId: string | null) => Promise<boolean>;
 }
 
 const GamificacaoContext = createContext<GamificacaoContextType | undefined>(undefined);
@@ -87,6 +88,7 @@ export const GamificacaoProvider: React.FC<{ children: React.ReactNode }> = ({ c
           mp_atual: data.mp_atual ?? 50,
           mp_maximo: data.mp_maximo ?? 50,
           gold_atual: data.gold_atual ?? data.moedas ?? 0,
+          titulo_equipado_id: data.titulo_equipado_id ?? null,
         };
 
         // Aversão à perda: se falhou o dia de ontem inteiro (diferença > 1 dia), zera a ofensiva
@@ -115,6 +117,7 @@ export const GamificacaoProvider: React.FC<{ children: React.ReactNode }> = ({ c
             xp_acumulado: 0,
             moedas: 0,
             gold_atual: 0,
+            titulo_equipado_id: null,
             streak_atual: 0,
             atributo_str: 0,
             atributo_int: 0,
@@ -483,6 +486,31 @@ export const GamificacaoProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   };
 
+  const equiparTituloPerfil = async (tituloId: string | null): Promise<boolean> => {
+    if (!user) return false;
+
+    setPerfil((prev) => (prev ? { ...prev, titulo_equipado_id: tituloId } : prev));
+
+    try {
+      const { error } = await supabase
+        .from('gamificacao_perfil')
+        .update({
+          titulo_equipado_id: tituloId,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', user.id);
+
+      if (error) {
+        await fetchPerfil();
+        throw error;
+      }
+      return true;
+    } catch {
+      notifyError();
+      return false;
+    }
+  };
+
   return (
     <GamificacaoContext.Provider
       value={{
@@ -497,6 +525,7 @@ export const GamificacaoProvider: React.FC<{ children: React.ReactNode }> = ({ c
         consumirEnergiaTarefa,
         descansarCompleto,
         registrarVitoriaDiaria,
+        equiparTituloPerfil,
       }}
     >
       {children}

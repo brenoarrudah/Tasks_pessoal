@@ -70,6 +70,7 @@ CREATE TABLE IF NOT EXISTS public.gamificacao_perfil (
     mp_atual INTEGER NOT NULL DEFAULT 50,
     mp_maximo INTEGER NOT NULL DEFAULT 50,
     gold_atual INTEGER NOT NULL DEFAULT 0,
+    titulo_equipado_id UUID,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -84,7 +85,28 @@ CREATE TABLE IF NOT EXISTS public.loja_recompensas (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- 8. Tabela de crm_tarefas
+-- 8. Tabela de conquistas_titulos (Catálogo de Títulos e Milestones)
+CREATE TABLE IF NOT EXISTS public.conquistas_titulos (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    titulo VARCHAR(100) NOT NULL UNIQUE,
+    descricao TEXT NOT NULL,
+    icone VARCHAR(50) DEFAULT 'award',
+    condicao_tipo VARCHAR(50) NOT NULL,
+    condicao_valor INTEGER NOT NULL,
+    condicao_desbloqueio VARCHAR(255) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- 9. Tabela de perfil_titulos_desbloqueados (Relação Usuário <-> Título)
+CREATE TABLE IF NOT EXISTS public.perfil_titulos_desbloqueados (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_usuario UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    id_titulo UUID NOT NULL REFERENCES public.conquistas_titulos(id) ON DELETE CASCADE,
+    data_desbloqueio TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT uq_usuario_titulo UNIQUE (id_usuario, id_titulo)
+);
+
+-- 10. Tabela de crm_tarefas
 CREATE TABLE IF NOT EXISTS public.crm_tarefas (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     id_usuario UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -436,7 +458,28 @@ DROP POLICY IF EXISTS "loja_recompensas_delete_policy" ON public.loja_recompensa
 CREATE POLICY "loja_recompensas_delete_policy" ON public.loja_recompensas
     FOR DELETE USING (auth.uid() = id_usuario);
 
--- 13. Seed inicial de configuracao padrao
+-- Politicas para conquistas_titulos e perfil_titulos_desbloqueados
+DROP POLICY IF EXISTS "conquistas_titulos_read_policy" ON public.conquistas_titulos;
+CREATE POLICY "conquistas_titulos_read_policy" ON public.conquistas_titulos
+    FOR SELECT TO authenticated USING (true);
+
+DROP POLICY IF EXISTS "perfil_titulos_desbloqueados_all_policy" ON public.perfil_titulos_desbloqueados;
+CREATE POLICY "perfil_titulos_desbloqueados_all_policy" ON public.perfil_titulos_desbloqueados
+    FOR ALL USING (auth.uid() = id_usuario) WITH CHECK (auth.uid() = id_usuario);
+
+-- 13. Seed inicial de títulos e conquistas base
+INSERT INTO public.conquistas_titulos (titulo, descricao, icone, condicao_tipo, condicao_valor, condicao_desbloqueio)
+VALUES
+  ('Primeiro Passo', 'Deu início à grande jornada de evolução diária.', 'footprints', 'nivel', 2, 'Atingir Nível 2'),
+  ('Iniciante Resiliente', 'Provou sua constância nos desafios fundamentais.', 'shield', 'nivel', 5, 'Atingir Nível 5'),
+  ('Guerreiro Veterano', 'Demonstrou poder avançado e domínio de rotinas.', 'swords', 'nivel', 10, 'Atingir Nível 10'),
+  ('Foco de Aço', 'Manteve a chama acesa por uma semana completa ininterrupta.', 'flame', 'streak', 7, 'Atingir 7 dias de Ofensiva'),
+  ('Hábito Inabalável', 'Duas semanas de consistência implacável.', 'crown', 'streak', 14, 'Atingir 14 dias de Ofensiva'),
+  ('Mestre da Riqueza', 'Acumulou uma respeitável fortuna em moedas de ouro.', 'coins', 'gold', 500, 'Acumular 500 Gold'),
+  ('Magnata da Produtividade', 'Alcançou o topo da economia de recompensas.', 'sparkles', 'gold', 1000, 'Acumular 1000 Gold')
+ON CONFLICT (titulo) DO NOTHING;
+
+-- 14. Seed inicial de configuracao padrao
 INSERT INTO public.configuracoes (id_usuario, nome_negocio, fuso_horario, tema)
 SELECT NULL, 'Gestor Pessoal de Tarefas', 'America/Sao_Paulo', 'light'
 WHERE NOT EXISTS (

@@ -25,8 +25,35 @@ export interface GamificacaoPerfil {
   hp_maximo?: number;
   mp_atual?: number;
   mp_maximo?: number;
+  titulo_equipado_id?: string | null;
+  titulo_equipado?: ConquistaTitulo | null;
   created_at?: string;
   updated_at?: string;
+}
+
+/**
+ * Catálogo de Títulos e Conquistas
+ */
+export interface ConquistaTitulo {
+  id: string;
+  titulo: string;
+  descricao: string;
+  icone?: string | null;
+  condicao_tipo: 'nivel' | 'streak' | 'gold' | string;
+  condicao_valor: number;
+  condicao_desbloqueio: string;
+  created_at?: string;
+}
+
+/**
+ * Títulos Desbloqueados pelo Usuário
+ */
+export interface PerfilTituloDesbloqueado {
+  id: string;
+  id_usuario: string;
+  id_titulo: string;
+  data_desbloqueio: string;
+  titulo_info?: ConquistaTitulo;
 }
 
 /**
