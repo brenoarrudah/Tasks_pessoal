@@ -159,8 +159,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Footer da Sidebar */}
       <div className="pt-3 border-t border-zinc-900 px-2 text-center">
-        <p className="text-[11px] text-zinc-600">
-          Gestor Pessoal de Tarefas v1.0
+        <p className="text-[11px] text-zinc-600 font-medium">
+          Gestor Pessoal de Tarefas v2.0.0
         </p>
       </div>
 
