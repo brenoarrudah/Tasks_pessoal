@@ -13,6 +13,7 @@ export interface GamificacaoPerfil {
   nivel_atual: number;
   xp_acumulado: number;
   moedas: number;
+  gold_atual?: number;
   streak_atual: number;
   ultima_ofensiva_data?: string | null; // 'YYYY-MM-DD'
   atributo_str?: number;
@@ -26,6 +27,18 @@ export interface GamificacaoPerfil {
   mp_maximo?: number;
   created_at?: string;
   updated_at?: string;
+}
+
+/**
+ * Recompensa da Loja / Mercado
+ */
+export interface LojaRecompensa {
+  id: string;
+  id_usuario: string;
+  titulo: string;
+  custo_gold: number;
+  icone?: string | null;
+  created_at?: string;
 }
 
 /**

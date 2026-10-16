@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { 
   Sun, 
   Plus, 
@@ -11,7 +12,8 @@ import {
   Award,
   X,
   Sparkles,
-  Bed
+  Bed,
+  Coins
 } from 'lucide-react';
 import { useTasks, Task } from '@/contexts/TasksContext';
 import { useGamificacao } from '@/contexts/GamificacaoContext';
@@ -39,7 +41,7 @@ export const Dashboard: React.FC = () => {
     openEditTaskModal,
     closeTaskModal
   } = useTasks();
-  const { descansarCompleto } = useGamificacao();
+  const { perfil, descansarCompleto } = useGamificacao();
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
@@ -132,7 +134,17 @@ export const Dashboard: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5 self-start sm:self-auto">
+        <div className="flex flex-wrap items-center gap-2.5 self-start sm:self-auto">
+          {/* Acesso rápido ao Mercado e Saldo de Gold */}
+          <Link
+            to="/mercado"
+            className="bg-amber-500/10 hover:bg-amber-500/20 active:bg-amber-500/30 text-amber-300 border border-amber-500/30 font-bold px-3.5 py-2.5 rounded-xl shadow-xs flex items-center justify-center gap-2 transition-all cursor-pointer text-sm group"
+            title="Acessar O Mercado de Recompensas"
+          >
+            <span className="text-base group-hover:scale-110 transition-transform">🪙</span>
+            <span>{perfil?.gold_atual ?? perfil?.moedas ?? 0} Gold</span>
+          </Link>
+
           <button
             onClick={() => descansarCompleto()}
             className="bg-amber-500/10 hover:bg-amber-500/20 active:bg-amber-500/30 text-amber-300 border border-amber-500/30 font-medium px-3.5 py-2.5 rounded-xl shadow-sm flex items-center justify-center gap-2 transition-all cursor-pointer text-sm"

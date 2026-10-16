@@ -1,5 +1,6 @@
 import React from 'react';
-import { Flame, Shield, Zap, Brain, Sparkles, Users, Target, Heart, Bed } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Flame, Shield, Zap, Brain, Sparkles, Users, Target, Heart, Bed, Coins } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { useGamificacao, xpParaAtingirNivel } from '@/contexts/GamificacaoContext';
 import { cn } from '@/lib/utils';
@@ -81,6 +82,7 @@ export const PlayerStatusCard: React.FC = () => {
   const hpMaximo = perfil.hp_maximo ?? 100;
   const mpAtual = perfil.mp_atual ?? 50;
   const mpMaximo = perfil.mp_maximo ?? 50;
+  const goldAtual = perfil.gold_atual ?? perfil.moedas ?? 0;
 
   const progressoHp = hpMaximo > 0 ? Math.min(100, Math.max(0, (hpAtual / hpMaximo) * 100)) : 0;
   const progressoMp = mpMaximo > 0 ? Math.min(100, Math.max(0, (mpAtual / mpMaximo) * 100)) : 0;
@@ -101,15 +103,22 @@ export const PlayerStatusCard: React.FC = () => {
 
       {/* Topo: Nível, XP, Barras de Sobrevivência (HP/MP) e Streak */}
       <div className="relative z-10 flex flex-col lg:flex-row lg:items-center gap-5">
-        {/* Escudo de Nível */}
+        {/* Escudo de Nível e Display de Gold */}
         <div className="flex items-center gap-4 shrink-0">
           <div className="relative w-16 h-16 shrink-0 rounded-2xl bg-indigo-500/15 border border-indigo-400/30 flex items-center justify-center shadow-lg shadow-indigo-900/40">
             <Shield className="w-14 h-14 text-indigo-400/30 absolute" />
             <span className="text-2xl font-extrabold text-indigo-200 relative">{nivel}</span>
           </div>
-          <div>
+          <div className="space-y-1">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-indigo-300">Nível Atual</p>
             <p className="text-lg font-bold text-zinc-100">Nível {nivel}</p>
+            {/* Display de Gold */}
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 shadow-xs shadow-amber-500/10">
+              <span className="text-sm">🪙</span>
+              <span className="text-xs font-black font-mono tracking-tight text-amber-200">
+                {goldAtual} <span className="text-[10px] uppercase font-bold text-amber-400/90 font-sans">Gold</span>
+              </span>
+            </div>
           </div>
         </div>
 
@@ -175,15 +184,15 @@ export const PlayerStatusCard: React.FC = () => {
           </div>
         </div>
 
-        {/* Lado Direito: Streak e Botão A Taverna (Cura Completa) */}
-        <div className="flex flex-row lg:flex-col items-stretch gap-2.5 self-start lg:self-auto shrink-0">
+        {/* Lado Direito: Streak, A Taverna e O Mercado */}
+        <div className="flex flex-row lg:flex-col items-stretch gap-2 self-start lg:self-auto shrink-0">
           {/* Streak */}
-          <div className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-orange-500/10 border border-orange-500/20">
-            <Flame className="w-5 h-5 text-orange-400" />
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-orange-500/10 border border-orange-500/20">
+            <Flame className="w-4 h-4 text-orange-400" />
             <div className="leading-tight">
-              <p className="text-base font-bold text-orange-300">🔥 {perfil.streak_atual}</p>
-              <p className="text-[10px] uppercase tracking-wider text-orange-400/80">
-                {perfil.streak_atual === 1 ? 'dia de ofensiva' : 'dias de ofensiva'}
+              <p className="text-sm font-bold text-orange-300">🔥 {perfil.streak_atual} dias</p>
+              <p className="text-[9px] uppercase tracking-wider text-orange-400/80">
+                ofensiva diária
               </p>
             </div>
           </div>
@@ -191,12 +200,22 @@ export const PlayerStatusCard: React.FC = () => {
           {/* A Taverna: Botão de Cura Completa (Descansar) */}
           <button
             onClick={() => descansarCompleto()}
-            className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 active:bg-amber-500/35 border border-amber-500/35 text-amber-200 text-xs font-bold shadow-sm hover:shadow-amber-500/20 transition-all cursor-pointer group"
+            className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 active:bg-amber-500/35 border border-amber-500/35 text-amber-200 text-xs font-bold shadow-xs hover:shadow-amber-500/20 transition-all cursor-pointer group"
             title="Recupera todo HP e MP (A Taverna)"
           >
-            <Bed className="w-4 h-4 text-amber-400 group-hover:scale-110 transition-transform" />
-            <span>Cura Completa (Descansar)</span>
+            <Bed className="w-3.5 h-3.5 text-amber-400 group-hover:scale-110 transition-transform" />
+            <span>Descansar</span>
           </button>
+
+          {/* O Mercado */}
+          <Link
+            to="/mercado"
+            className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/20 to-amber-600/20 hover:from-amber-500/30 hover:to-amber-600/30 active:from-amber-500/40 active:to-amber-600/40 border border-amber-500/40 text-amber-200 text-xs font-bold shadow-xs hover:shadow-amber-500/25 transition-all cursor-pointer group"
+            title="Visitar O Mercado de Recompensas"
+          >
+            <Coins className="w-3.5 h-3.5 text-amber-400 group-hover:scale-110 transition-transform" />
+            <span>O Mercado</span>
+          </Link>
         </div>
       </div>
 

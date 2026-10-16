@@ -69,11 +69,22 @@ CREATE TABLE IF NOT EXISTS public.gamificacao_perfil (
     hp_maximo INTEGER NOT NULL DEFAULT 100,
     mp_atual INTEGER NOT NULL DEFAULT 50,
     mp_maximo INTEGER NOT NULL DEFAULT 50,
+    gold_atual INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- 7. Tabela de crm_tarefas
+-- 7. Tabela de loja_recompensas (Mercado / Recompensas do Usuário)
+CREATE TABLE IF NOT EXISTS public.loja_recompensas (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_usuario UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    titulo VARCHAR(255) NOT NULL,
+    custo_gold INTEGER NOT NULL DEFAULT 10,
+    icone VARCHAR(50) DEFAULT 'gift',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- 8. Tabela de crm_tarefas
 CREATE TABLE IF NOT EXISTS public.crm_tarefas (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     id_usuario UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -406,6 +417,23 @@ CREATE POLICY "metas_macro_update_policy" ON public.metas_macro
 
 DROP POLICY IF EXISTS "metas_macro_delete_policy" ON public.metas_macro;
 CREATE POLICY "metas_macro_delete_policy" ON public.metas_macro
+    FOR DELETE USING (auth.uid() = id_usuario);
+
+-- Politicas para loja_recompensas
+DROP POLICY IF EXISTS "loja_recompensas_select_policy" ON public.loja_recompensas;
+CREATE POLICY "loja_recompensas_select_policy" ON public.loja_recompensas
+    FOR SELECT USING (auth.uid() = id_usuario);
+
+DROP POLICY IF EXISTS "loja_recompensas_insert_policy" ON public.loja_recompensas;
+CREATE POLICY "loja_recompensas_insert_policy" ON public.loja_recompensas
+    FOR INSERT WITH CHECK (auth.uid() = id_usuario);
+
+DROP POLICY IF EXISTS "loja_recompensas_update_policy" ON public.loja_recompensas;
+CREATE POLICY "loja_recompensas_update_policy" ON public.loja_recompensas
+    FOR UPDATE USING (auth.uid() = id_usuario);
+
+DROP POLICY IF EXISTS "loja_recompensas_delete_policy" ON public.loja_recompensas;
+CREATE POLICY "loja_recompensas_delete_policy" ON public.loja_recompensas
     FOR DELETE USING (auth.uid() = id_usuario);
 
 -- 13. Seed inicial de configuracao padrao

@@ -11,7 +11,8 @@ import {
   ChevronRight, 
   X,
   Loader2,
-  Target
+  Target,
+  Coins
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAreas } from '@/contexts/AreasContext';
@@ -39,6 +40,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { label: 'Tarefas do Dia', path: '/', icon: Sun },
     { label: 'Visão Geral', path: '/tarefas', icon: ListTodo },
     { label: 'Metas e Projetos', path: '/metas', icon: Target },
+    { label: 'O Mercado', path: '/mercado', icon: Coins },
     { label: 'Gestão de Áreas', path: '/areas', icon: Folders },
     { label: 'Configurações', path: '/configuracoes', icon: Settings },
     { label: 'Logs do Sistema', path: '/logs', icon: Activity },

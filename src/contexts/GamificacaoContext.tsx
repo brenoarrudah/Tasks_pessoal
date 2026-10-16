@@ -41,6 +41,9 @@ interface GamificacaoContextType {
   fetchPerfil: () => Promise<void>;
   ajustarXp: (delta: number) => Promise<boolean>;
   ajustarAtributo: (atributo: AtributoRpg, delta: number) => Promise<boolean>;
+  ajustarGoldTarefa: (prioridade?: PrioridadeTipo, isConclusao?: boolean) => Promise<boolean>;
+  ajustarGold: (delta: number) => Promise<boolean>;
+  comprarItemGold: (custoGold: number) => Promise<{ sucesso: boolean; mensagem: string }>;
   consumirEnergiaTarefa: (prioridade?: PrioridadeTipo, atributo?: AtributoRpg | null, isConclusao?: boolean) => Promise<boolean>;
   descansarCompleto: () => Promise<boolean>;
   registrarVitoriaDiaria: () => Promise<boolean>;
@@ -83,6 +86,7 @@ export const GamificacaoProvider: React.FC<{ children: React.ReactNode }> = ({ c
           hp_maximo: data.hp_maximo ?? 100,
           mp_atual: data.mp_atual ?? 50,
           mp_maximo: data.mp_maximo ?? 50,
+          gold_atual: data.gold_atual ?? data.moedas ?? 0,
         };
 
         // Aversão à perda: se falhou o dia de ontem inteiro (diferença > 1 dia), zera a ofensiva
@@ -110,6 +114,7 @@ export const GamificacaoProvider: React.FC<{ children: React.ReactNode }> = ({ c
             nivel_atual: 1,
             xp_acumulado: 0,
             moedas: 0,
+            gold_atual: 0,
             streak_atual: 0,
             atributo_str: 0,
             atributo_int: 0,
@@ -360,6 +365,124 @@ export const GamificacaoProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   };
 
+  const ajustarGoldTarefa = async (
+    prioridade: PrioridadeTipo = 'media',
+    isConclusao: boolean = true
+  ) => {
+    if (!user) return false;
+
+    // Regra de Ganho: Alta = +20, Média = +10, Baixa = +5
+    const valorGold = prioridade === 'alta' ? 20 : prioridade === 'baixa' ? 5 : 10;
+    const delta = isConclusao ? valorGold : -valorGold;
+
+    try {
+      const { data: atual, error: fetchErr } = await supabase
+        .from('gamificacao_perfil')
+        .select('gold_atual')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (fetchErr) throw fetchErr;
+
+      const goldAtual = Number(atual?.gold_atual ?? perfil?.gold_atual ?? 0);
+      const novoGold = Math.max(0, goldAtual + delta);
+
+      setPerfil((prev) => (prev ? { ...prev, gold_atual: novoGold } : prev));
+
+      const { error: updateErr } = await supabase
+        .from('gamificacao_perfil')
+        .update({
+          gold_atual: novoGold,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', user.id);
+
+      if (updateErr) {
+        await fetchPerfil();
+        throw updateErr;
+      }
+      return true;
+    } catch {
+      notifyError();
+      return false;
+    }
+  };
+
+  const ajustarGold = async (delta: number) => {
+    if (!user || delta === 0) return false;
+
+    try {
+      const { data: atual, error: fetchErr } = await supabase
+        .from('gamificacao_perfil')
+        .select('gold_atual')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (fetchErr) throw fetchErr;
+
+      const goldAtual = Number(atual?.gold_atual ?? perfil?.gold_atual ?? 0);
+      const novoGold = Math.max(0, goldAtual + delta);
+
+      setPerfil((prev) => (prev ? { ...prev, gold_atual: novoGold } : prev));
+
+      const { error: updateErr } = await supabase
+        .from('gamificacao_perfil')
+        .update({
+          gold_atual: novoGold,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', user.id);
+
+      if (updateErr) {
+        await fetchPerfil();
+        throw updateErr;
+      }
+      return true;
+    } catch {
+      notifyError();
+      return false;
+    }
+  };
+
+  const comprarItemGold = async (
+    custoGold: number
+  ): Promise<{ sucesso: boolean; mensagem: string }> => {
+    if (!user) return { sucesso: false, mensagem: 'Usuário não autenticado.' };
+
+    const goldAtual = perfil?.gold_atual ?? 0;
+    if (goldAtual < custoGold) {
+      return { sucesso: false, mensagem: 'Gold insuficiente. Complete mais missões!' };
+    }
+
+    const novoGold = Math.max(0, goldAtual - custoGold);
+
+    // Atualização otimista imediata
+    setPerfil((prev) => (prev ? { ...prev, gold_atual: novoGold } : prev));
+
+    try {
+      const { error: updateErr } = await supabase
+        .from('gamificacao_perfil')
+        .update({
+          gold_atual: novoGold,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', user.id);
+
+      if (updateErr) {
+        await fetchPerfil();
+        throw updateErr;
+      }
+
+      setCelebracao('Recompensa Comprada! Aproveite o seu prémio.');
+      setTimeout(() => setCelebracao(null), 4500);
+      return { sucesso: true, mensagem: 'Recompensa Comprada! Aproveite o seu prémio.' };
+    } catch {
+      await fetchPerfil();
+      notifyError();
+      return { sucesso: false, mensagem: 'Falha ao processar a compra.' };
+    }
+  };
+
   return (
     <GamificacaoContext.Provider
       value={{
@@ -368,6 +491,9 @@ export const GamificacaoProvider: React.FC<{ children: React.ReactNode }> = ({ c
         fetchPerfil,
         ajustarXp,
         ajustarAtributo,
+        ajustarGoldTarefa,
+        ajustarGold,
+        comprarItemGold,
         consumirEnergiaTarefa,
         descansarCompleto,
         registrarVitoriaDiaria,
