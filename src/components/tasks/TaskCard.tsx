@@ -90,10 +90,10 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) =>
   return (
     <div
       className={cn(
-        "bg-zinc-900/90 border rounded-2xl transition-all shadow-sm overflow-hidden",
+        "bg-zinc-900/90 border rounded-2xl transition-all duration-300 shadow-sm overflow-hidden",
         task.concluida
           ? "border-zinc-800/60 bg-zinc-900/40 opacity-75"
-          : "border-zinc-800/90 hover:border-zinc-700/80"
+          : "border-zinc-800/90 hover:border-zinc-600/90 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/30"
       )}
     >
       {/* Linha Principal da Tarefa */}
@@ -101,12 +101,13 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) =>
         onClick={() => setExpanded(!expanded)}
         className="p-4 flex items-start gap-3.5 cursor-pointer select-none"
       >
-        {/* Custom Checkbox Inspirado no Google Tasks */}
+        {/* Custom Checkbox Inspirado no Google Tasks com Animação de Escala */}
         <button
           type="button"
           onClick={handleToggleComplete}
           className={cn(
-            "w-5 h-5 rounded-full border flex items-center justify-center transition-all mt-0.5 shrink-0 cursor-pointer",
+            "w-5 h-5 rounded-full border flex items-center justify-center transition-all duration-200 mt-0.5 shrink-0 cursor-pointer",
+            "hover:scale-110 active:scale-90",
             task.concluida
               ? "bg-blue-600 border-blue-600 text-white shadow-xs"
               : "border-zinc-600 hover:border-blue-500 hover:bg-blue-600/10 text-transparent"
@@ -171,11 +172,11 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) =>
                 title={`Atributo RPG: +1 ponto em ${task.atributo_alvo}`}
                 className={cn(
                   "text-[10px] font-semibold px-2 py-0.5 rounded-full border flex items-center gap-1 shrink-0",
-                  task.atributo_alvo === 'STR' && "bg-rose-500/10 text-rose-300 border-rose-500/20",
-                  task.atributo_alvo === 'INT' && "bg-cyan-500/10 text-cyan-300 border-cyan-500/20",
-                  task.atributo_alvo === 'SPR' && "bg-purple-500/10 text-purple-300 border-purple-500/20",
-                  task.atributo_alvo === 'CHA' && "bg-amber-500/10 text-amber-300 border-amber-500/20",
-                  task.atributo_alvo === 'PER' && "bg-emerald-500/10 text-emerald-300 border-emerald-500/20"
+                  task.atributo_alvo === 'STR' && "bg-red-500/10 text-red-300 border-red-500/20",
+                  task.atributo_alvo === 'INT' && "bg-blue-500/10 text-blue-300 border-blue-500/20",
+                  task.atributo_alvo === 'SPR' && "bg-amber-500/10 text-amber-300 border-amber-500/20",
+                  task.atributo_alvo === 'CHA' && "bg-emerald-500/10 text-emerald-300 border-emerald-500/20",
+                  task.atributo_alvo === 'PER' && "bg-purple-500/10 text-purple-300 border-purple-500/20"
                 )}
               >
                 <span>

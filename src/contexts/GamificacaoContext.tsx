@@ -1,9 +1,10 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { notifyError } from '@/lib/notify';
 import { supabase } from '@/lib/supabase';
-import { Flame } from 'lucide-react';
+import { Flame, Crown } from 'lucide-react';
 import { useAuth } from './AuthContext';
 import { getTodaySaoPauloString, parseLocalDateSaoPaulo } from '@/lib/dateUtils';
+import { dispararConfetesLevelUp } from '@/lib/confetti';
 import type { GamificacaoPerfil, AtributoRpg } from '@/types';
 
 /** Diferença em dias inteiros entre duas datas 'YYYY-MM-DD' (b - a) */
@@ -50,6 +51,7 @@ export const GamificacaoProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [perfil, setPerfil] = useState<GamificacaoPerfil | null>(null);
   const [loading, setLoading] = useState(true);
   const [celebracao, setCelebracao] = useState<string | null>(null);
+  const [levelUpNivel, setLevelUpNivel] = useState<number | null>(null);
 
   const fetchPerfil = useCallback(async () => {
     if (!user) {
@@ -137,8 +139,16 @@ export const GamificacaoProvider: React.FC<{ children: React.ReactNode }> = ({ c
         .maybeSingle();
       if (fetchErr) throw fetchErr;
 
-      const novoXp = Math.max(0, (atual?.xp_acumulado ?? 0) + delta);
+      const xpAnterior = atual?.xp_acumulado ?? perfil?.xp_acumulado ?? 0;
+      const nivelAnterior = calcularNivel(xpAnterior);
+      const novoXp = Math.max(0, xpAnterior + delta);
       const novoNivel = calcularNivel(novoXp);
+
+      // Gatilho Level Up: confetes dourados e alerta épico
+      if (delta > 0 && novoNivel > nivelAnterior) {
+        dispararConfetesLevelUp();
+        setLevelUpNivel(novoNivel);
+      }
 
       // Atualização otimista: barra reage imediatamente
       setPerfil((prev) =>
@@ -255,11 +265,49 @@ export const GamificacaoProvider: React.FC<{ children: React.ReactNode }> = ({ c
     >
       {children}
 
-      {/* Toast comemorativo de Vitória Diária */}
+      {/* Toast comemorativo de Ofensiva / Vitória Diária */}
       {celebracao && (
         <div className="fixed bottom-6 right-6 z-[60] bg-zinc-900 border border-orange-500/40 text-zinc-100 px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3 animate-in slide-in-from-bottom-5 duration-200">
           <Flame className="w-5 h-5 text-orange-400 shrink-0" />
           <span className="text-sm font-semibold">{celebracao}</span>
+        </div>
+      )}
+
+      {/* Modal / Overlay Épico de Level Up (Solo Leveling) */}
+      {levelUpNivel && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200">
+          {/* Efeito de Glow na tela inteira */}
+          <div
+            className="fixed inset-0 bg-black/85 backdrop-blur-md pointer-events-auto"
+            onClick={() => setLevelUpNivel(null)}
+          />
+          <div className="fixed inset-0 pointer-events-none ring-8 ring-amber-400/40 animate-pulse shadow-inner" />
+
+          {/* Card de Level Up Estilo Solo Leveling */}
+          <div className="relative z-10 w-full max-w-sm rounded-3xl border-2 border-amber-400/70 bg-gradient-to-b from-indigo-950 via-zinc-950 to-zinc-950 p-6 text-center shadow-2xl shadow-amber-500/30 animate-in zoom-in-95 duration-200 overflow-hidden">
+            <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-36 h-36 bg-amber-500/25 rounded-full blur-3xl pointer-events-none" />
+
+            <div className="mx-auto w-16 h-16 rounded-2xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center mb-3 shadow-lg shadow-amber-500/20">
+              <Crown className="w-9 h-9 text-amber-400 animate-bounce" />
+            </div>
+
+            <p className="text-[11px] font-black tracking-widest text-amber-400 uppercase">
+              Solo Leveling • Notificação do Sistema
+            </p>
+            <h2 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-amber-100 my-1 tracking-tight">
+              LEVEL UP!
+            </h2>
+            <p className="text-sm text-zinc-300 mb-5">
+              Você alcançou o <strong className="text-amber-300 font-extrabold">Nível {levelUpNivel}</strong>! O seu poder e atributos foram elevados.
+            </p>
+
+            <button
+              onClick={() => setLevelUpNivel(null)}
+              className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 active:from-amber-600 active:to-amber-700 text-zinc-950 font-extrabold text-sm tracking-wide shadow-lg shadow-amber-500/25 transition-all cursor-pointer"
+            >
+              Continuar Jornada
+            </button>
+          </div>
         </div>
       )}
     </GamificacaoContext.Provider>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Flame, Shield, Zap, Dumbbell, Brain, Sparkles, Crown, Eye } from 'lucide-react';
+import { Flame, Shield, Zap, Brain, Sparkles, Users, Target } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { useGamificacao, xpParaAtingirNivel } from '@/contexts/GamificacaoContext';
 import { cn } from '@/lib/utils';
@@ -10,11 +10,11 @@ const ATRIBUTOS_RPG = [
     sigla: 'STR',
     nome: 'Força',
     subtitulo: 'Vitalidade',
-    Icon: Dumbbell,
-    accentColor: 'text-rose-400',
-    borderColor: 'border-rose-500/20 hover:border-rose-500/40',
-    bgColor: 'bg-rose-500/10',
-    barColor: 'bg-rose-500',
+    Icon: Flame,
+    accentColor: 'text-red-400',
+    borderColor: 'border-red-500/25 hover:border-red-500/50 hover:shadow-red-500/10',
+    bgColor: 'bg-red-500/10',
+    barColor: 'bg-red-500',
   },
   {
     chave: 'atributo_int' as const,
@@ -22,10 +22,10 @@ const ATRIBUTOS_RPG = [
     nome: 'Inteligência',
     subtitulo: 'Foco',
     Icon: Brain,
-    accentColor: 'text-cyan-400',
-    borderColor: 'border-cyan-500/20 hover:border-cyan-500/40',
-    bgColor: 'bg-cyan-500/10',
-    barColor: 'bg-cyan-500',
+    accentColor: 'text-blue-400',
+    borderColor: 'border-blue-500/25 hover:border-blue-500/50 hover:shadow-blue-500/10',
+    bgColor: 'bg-blue-500/10',
+    barColor: 'bg-blue-500',
   },
   {
     chave: 'atributo_spr' as const,
@@ -33,32 +33,32 @@ const ATRIBUTOS_RPG = [
     nome: 'Espírito',
     subtitulo: 'Sabedoria',
     Icon: Sparkles,
-    accentColor: 'text-purple-400',
-    borderColor: 'border-purple-500/20 hover:border-purple-500/40',
-    bgColor: 'bg-purple-500/10',
-    barColor: 'bg-purple-500',
+    accentColor: 'text-amber-400',
+    borderColor: 'border-amber-500/25 hover:border-amber-500/50 hover:shadow-amber-500/10',
+    bgColor: 'bg-amber-500/10',
+    barColor: 'bg-amber-400',
   },
   {
     chave: 'atributo_cha' as const,
     sigla: 'CHA',
     nome: 'Carisma',
     subtitulo: 'Liderança',
-    Icon: Crown,
-    accentColor: 'text-amber-400',
-    borderColor: 'border-amber-500/20 hover:border-amber-500/40',
-    bgColor: 'bg-amber-500/10',
-    barColor: 'bg-amber-500',
+    Icon: Users,
+    accentColor: 'text-emerald-400',
+    borderColor: 'border-emerald-500/25 hover:border-emerald-500/50 hover:shadow-emerald-500/10',
+    bgColor: 'bg-emerald-500/10',
+    barColor: 'bg-emerald-500',
   },
   {
     chave: 'atributo_per' as const,
     sigla: 'PER',
     nome: 'Percepção',
     subtitulo: 'Organização',
-    Icon: Eye,
-    accentColor: 'text-emerald-400',
-    borderColor: 'border-emerald-500/20 hover:border-emerald-500/40',
-    bgColor: 'bg-emerald-500/10',
-    barColor: 'bg-emerald-500',
+    Icon: Target,
+    accentColor: 'text-purple-400',
+    borderColor: 'border-purple-500/25 hover:border-purple-500/50 hover:shadow-purple-500/10',
+    bgColor: 'bg-purple-500/10',
+    barColor: 'bg-purple-500',
   },
 ];
 
@@ -157,7 +157,7 @@ export const PlayerStatusCard: React.FC = () => {
               <div
                 key={attr.sigla}
                 className={cn(
-                  "group relative overflow-hidden rounded-2xl border p-3.5 transition-all bg-zinc-950/60 backdrop-blur-xs",
+                  "group relative overflow-hidden rounded-2xl border p-3.5 transition-all duration-300 hover:-translate-y-0.5 bg-zinc-950/60 backdrop-blur-xs cursor-default",
                   attr.borderColor
                 )}
               >

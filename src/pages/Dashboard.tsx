@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Sun, 
   Plus, 
@@ -8,7 +8,9 @@ import {
   Clock, 
   AlertCircle,
   Flame,
-  Award
+  Award,
+  X,
+  Sparkles
 } from 'lucide-react';
 import { useTasks, Task } from '@/contexts/TasksContext';
 import { TaskCard } from '@/components/tasks/TaskCard';
@@ -21,6 +23,7 @@ import {
   formatSaoPauloHeaderDate,
   sortTasksCronologicamente 
 } from '@/lib/dateUtils';
+import { dispararConfetes as dispararConfetesLib } from '@/lib/confetti';
 
 export const Dashboard: React.FC = () => {
   const { 
@@ -39,6 +42,13 @@ export const Dashboard: React.FC = () => {
   const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
   const [completedExpanded, setCompletedExpanded] = useState(false);
   const [includeOverdue, setIncludeOverdue] = useState(true);
+  const [showVitoriaToast, setShowVitoriaToast] = useState(false);
+  const prevPendingRef = useRef<number | null>(null);
+
+  // Função para disparar confetes utilizando canvas-confetti
+  const dispararConfetes = () => {
+    dispararConfetesLib();
+  };
 
   const formattedToday = formatSaoPauloHeaderDate();
 
@@ -74,6 +84,22 @@ export const Dashboard: React.FC = () => {
   const completionPercentage = totalTodayCount > 0 
     ? Math.round((completedTodayCount / totalTodayCount) * 100) 
     : 100;
+
+  // Gatilho 1 (Vitória Diária): aciona os confetes e Toast quando o Progresso do Dia atingir 100%
+  useEffect(() => {
+    if (
+      prevPendingRef.current !== null &&
+      prevPendingRef.current > 0 &&
+      pendingCount === 0 &&
+      totalTodayCount > 0
+    ) {
+      dispararConfetes();
+      setShowVitoriaToast(true);
+      const timer = setTimeout(() => setShowVitoriaToast(false), 6000);
+      return () => clearTimeout(timer);
+    }
+    prevPendingRef.current = pendingCount;
+  }, [pendingCount, totalTodayCount]);
 
   const handleOpenDeleteModal = (task: Task) => {
     setTaskToDelete(task);
@@ -318,6 +344,33 @@ export const Dashboard: React.FC = () => {
         onClose={() => setDeleteModalOpen(false)}
         onConfirm={handleConfirmDelete}
       />
+
+      {/* Toast Especial de Vitória Diária 100% */}
+      {showVitoriaToast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[70] max-w-md w-[92%] bg-gradient-to-r from-emerald-950 via-zinc-900 to-emerald-950 border-2 border-emerald-500/50 text-zinc-100 p-4 rounded-2xl shadow-2xl shadow-emerald-950/80 flex items-center justify-between gap-4 animate-in slide-in-from-bottom-6 duration-300">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="p-2.5 rounded-xl bg-emerald-500/20 border border-emerald-400/40 text-emerald-400 shrink-0">
+              <Award className="w-6 h-6 animate-bounce" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs font-black uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5" />
+                Vitória Diária Conquistada!
+              </p>
+              <p className="text-sm font-bold text-zinc-100 truncate">
+                100% das tarefas de hoje foram concluídas! 🎉
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => setShowVitoriaToast(false)}
+            className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/80 transition-colors shrink-0 cursor-pointer"
+            title="Fechar notificação"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
     </div>
   );
