@@ -205,6 +205,7 @@ export const VisaoGeral: React.FC = () => {
                         task={task}
                         onEdit={openEditTaskModal}
                         onDelete={handleOpenDeleteModal}
+                        hideAreaBadge={true}
                       />
                     ))}
                   </div>
@@ -234,6 +235,7 @@ export const VisaoGeral: React.FC = () => {
                             task={task}
                             onEdit={openEditTaskModal}
                             onDelete={handleOpenDeleteModal}
+                            hideAreaBadge={true}
                           />
                         ))}
                       </div>

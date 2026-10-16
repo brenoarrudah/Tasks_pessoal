@@ -225,23 +225,23 @@ export const TaskModal: React.FC<TaskModalProps> = ({
         />
 
         {/* Modal Dialog */}
-        <div className="relative w-full max-w-lg bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden z-10 animate-in zoom-in-95 duration-150">
+        <div className="relative w-full max-w-lg bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden z-10 animate-in zoom-in-95 duration-150 max-h-[92vh] flex flex-col">
           
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800 bg-zinc-900/50">
+          <div className="flex items-center justify-between px-6 py-3.5 border-b border-zinc-800 bg-zinc-900/50 shrink-0">
             <h2 className="text-lg font-bold text-zinc-100 flex items-center gap-2">
               {taskToEdit ? 'Editar Tarefa' : 'Nova Tarefa'}
             </h2>
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 transition-colors"
+              className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
           {/* Form Body */}
-          <form onSubmit={handleSubmit} className="p-6 space-y-5">
+          <form onSubmit={handleSubmit} className="p-5 sm:p-6 space-y-4 overflow-y-auto flex-1">
             {isGeradaPorIa && (
               <div className="p-3.5 rounded-xl bg-red-950/80 border border-red-500/50 text-red-200 text-xs flex items-start gap-2.5 shadow-lg shadow-red-950/50">
                 <AlertTriangle className="w-4 h-4 text-red-400 shrink-0 mt-0.5 animate-pulse" />
@@ -285,7 +285,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                 onChange={(e) => setTitulo(e.target.value)}
                 placeholder="O que precisa ser feito?"
                 className={cn(
-                  "w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-zinc-100 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors placeholder:text-zinc-600",
+                  "w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-zinc-100 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors placeholder:text-zinc-600",
                   isGeradaPorIa && "opacity-60 cursor-not-allowed bg-zinc-900 border-red-900/40 focus:border-red-900/40 focus:ring-0"
                 )}
               />
@@ -297,13 +297,13 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                 Descrição (Detalhes / Notas)
               </label>
               <textarea
-                rows={3}
+                rows={2}
                 disabled={isGeradaPorIa}
                 value={descricao}
                 onChange={(e) => setDescricao(e.target.value)}
                 placeholder="Adicione detalhes, observações ou links úteis..."
                 className={cn(
-                  "w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-zinc-100 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors placeholder:text-zinc-600 resize-none",
+                  "w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2 text-zinc-100 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors placeholder:text-zinc-600 resize-none",
                   isGeradaPorIa && "opacity-60 cursor-not-allowed bg-zinc-900 border-red-900/40 focus:border-red-900/40 focus:ring-0"
                 )}
               />

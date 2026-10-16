@@ -106,36 +106,36 @@ export const Metas: React.FC = () => {
 
       {/* Cards de Métricas / Resumo */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-        <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-2xl p-4 shadow-sm">
-          <div className="flex items-center justify-between mb-2">
+        <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-xl p-3.5 sm:p-4 shadow-xs">
+          <div className="flex items-center justify-between mb-1.5">
             <span className="text-xs font-medium text-zinc-400">Total de Metas</span>
             <Target className="w-4 h-4 text-zinc-500" />
           </div>
-          <div className="text-2xl font-bold text-zinc-100">{totalMetas}</div>
+          <div className="text-xl sm:text-2xl font-bold text-zinc-100">{totalMetas}</div>
         </div>
 
-        <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-2xl p-4 shadow-sm">
-          <div className="flex items-center justify-between mb-2">
+        <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-xl p-3.5 sm:p-4 shadow-xs">
+          <div className="flex items-center justify-between mb-1.5">
             <span className="text-xs font-medium text-zinc-400">Em Andamento</span>
             <TrendingUp className="w-4 h-4 text-amber-400" />
           </div>
-          <div className="text-2xl font-bold text-amber-400">{metasEmAndamento.length}</div>
+          <div className="text-xl sm:text-2xl font-bold text-amber-400">{metasEmAndamento.length}</div>
         </div>
 
-        <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-2xl p-4 shadow-sm">
-          <div className="flex items-center justify-between mb-2">
+        <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-xl p-3.5 sm:p-4 shadow-xs">
+          <div className="flex items-center justify-between mb-1.5">
             <span className="text-xs font-medium text-zinc-400">Concluídas</span>
             <CheckCircle2 className="w-4 h-4 text-emerald-400" />
           </div>
-          <div className="text-2xl font-bold text-emerald-400">{metasConcluidas.length}</div>
+          <div className="text-xl sm:text-2xl font-bold text-emerald-400">{metasConcluidas.length}</div>
         </div>
 
-        <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-2xl p-4 shadow-sm">
-          <div className="flex items-center justify-between mb-2">
+        <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-xl p-3.5 sm:p-4 shadow-xs">
+          <div className="flex items-center justify-between mb-1.5">
             <span className="text-xs font-medium text-zinc-400">Progresso Geral</span>
             <Sparkles className="w-4 h-4 text-blue-400" />
           </div>
-          <div className="text-2xl font-bold text-blue-400">{mediaProgresso}%</div>
+          <div className="text-xl sm:text-2xl font-bold text-blue-400">{mediaProgresso}%</div>
         </div>
       </div>
 
@@ -176,7 +176,7 @@ export const Metas: React.FC = () => {
               <div
                 key={meta.id}
                 className={cn(
-                  "bg-zinc-900/80 border rounded-2xl p-5 shadow-sm transition-all flex flex-col justify-between space-y-4",
+                  "group bg-zinc-900/80 border rounded-2xl p-4 sm:p-4.5 shadow-xs transition-all flex flex-col justify-between space-y-3.5",
                   isCompleted 
                     ? "border-emerald-500/30 bg-emerald-950/10" 
                     : "border-zinc-800/90 hover:border-zinc-700/80"
@@ -184,16 +184,16 @@ export const Metas: React.FC = () => {
               >
                 {/* Topo do Card */}
                 <div>
-                  <div className="flex items-start justify-between gap-3 mb-2">
+                  <div className="flex items-start justify-between gap-3 mb-1.5">
                     <div className="flex items-center gap-2.5 min-w-0">
                       <div className={cn(
                         "p-2 rounded-xl shrink-0",
                         isCompleted ? "bg-emerald-500/10 text-emerald-400" : "bg-amber-500/10 text-amber-400"
                       )}>
-                        <Target className="w-5 h-5" />
+                        <Target className="w-4 h-4 sm:w-5 sm:h-5" />
                       </div>
                       <h3 className={cn(
-                        "text-base font-bold truncate",
+                        "text-sm sm:text-base font-bold truncate",
                         isCompleted ? "text-emerald-300" : "text-zinc-100"
                       )}>
                         {meta.titulo}
@@ -222,19 +222,19 @@ export const Metas: React.FC = () => {
                 </div>
 
                 {/* Bloco de Progresso */}
-                <div className="space-y-2 pt-1">
+                <div className="space-y-1.5 pt-0.5">
                   <div className="flex items-center justify-between text-xs font-medium">
-                    <span className="text-zinc-400 flex items-center gap-1.5">
+                    <span className="text-zinc-400 flex items-center gap-1.5 text-[11px] sm:text-xs">
                       <Award className="w-3.5 h-3.5 text-zinc-500" />
                       <span>{progressoAtual} de {progressoAlvo} pontos</span>
                     </span>
-                    <span className={cn("font-bold", isCompleted ? "text-emerald-400" : "text-amber-400")}>
+                    <span className={cn("font-bold text-xs", isCompleted ? "text-emerald-400" : "text-amber-400")}>
                       {percentage}%
                     </span>
                   </div>
 
                   {/* Barra de Progresso Visual */}
-                  <div className="w-full h-2.5 bg-zinc-950 border border-zinc-800 rounded-full overflow-hidden p-0.5">
+                  <div className="w-full h-2 bg-zinc-950 border border-zinc-800 rounded-full overflow-hidden p-0.5">
                     <div
                       className={cn(
                         "h-full rounded-full transition-all duration-300",
@@ -260,20 +260,20 @@ export const Metas: React.FC = () => {
                 </div>
 
                 {/* Rodapé do Card com Ações */}
-                <div className="flex items-center justify-between pt-3 border-t border-zinc-800/80 gap-2">
+                <div className="flex items-center justify-between pt-2.5 border-t border-zinc-800/80 gap-2">
                   {/* Botão de Incremento Rápido (+1 Ponto) */}
                   <button
                     type="button"
                     onClick={() => incrementarProgresso(meta.id, 1)}
                     disabled={isCompleted}
-                    className="px-2.5 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 active:bg-amber-500/30 text-amber-300 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed border border-amber-500/20"
+                    className="px-2.5 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 active:bg-amber-500/30 text-amber-300 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed border border-amber-500/20"
                     title="Adicionar 1 ponto de progresso"
                   >
                     <Plus className="w-3 h-3 stroke-[2.5]" />
                     <span>+1 Ponto</span>
                   </button>
 
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1 sm:opacity-80 sm:group-hover:opacity-100 transition-opacity">
                     {/* Botão Alternar Conclusão */}
                     <button
                       type="button"

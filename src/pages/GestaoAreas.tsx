@@ -7,7 +7,6 @@ import {
   Pencil, 
   Trash2, 
   Loader2, 
-  Calendar,
   Sparkles,
   CheckCircle2
 } from 'lucide-react';
@@ -171,44 +170,24 @@ export const GestaoAreas: React.FC = () => {
             const isLast = index === areas.length - 1;
             const isReordering = reorderingId === area.id;
 
-            const formattedDate = new Date(area.created_at).toLocaleDateString('pt-BR', {
-              day: '2-digit',
-              month: 'short',
-              year: 'numeric'
-            });
-
             return (
               <div
                 key={area.id}
-                className="bg-zinc-900/80 hover:bg-zinc-900 border border-zinc-800/90 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all shadow-sm hover:border-zinc-700/80 group"
+                className="bg-zinc-900/80 hover:bg-zinc-900 border border-zinc-800/90 rounded-xl p-3 sm:p-3.5 flex items-center justify-between gap-4 transition-all shadow-sm hover:border-zinc-700/80 group"
               >
                 {/* Lado Esquerdo: Ícone + Cor + Nome */}
-                <div className="flex items-center gap-3.5">
+                <div className="flex items-center gap-3">
                   {/* Badge do Ícone com Cor Customizada */}
                   <div
-                    className="w-11 h-11 rounded-2xl flex items-center justify-center text-white shadow-md shrink-0 transition-transform group-hover:scale-105"
+                    className="w-9 h-9 rounded-xl flex items-center justify-center text-white shadow-sm shrink-0 transition-transform group-hover:scale-105"
                     style={{ backgroundColor: area.cor || '#3B82F6' }}
                   >
-                    <AreaIcon name={area.icone} className="w-5 h-5" />
+                    <AreaIcon name={area.icone} className="w-4 h-4" />
                   </div>
 
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-semibold text-zinc-100 text-base">
-                        {area.nome}
-                      </h3>
-                      <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-400 border border-zinc-700/50">
-                        Ordem #{area.ordem}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-3 text-xs text-zinc-400 mt-1">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="w-3.5 h-3.5 text-zinc-500" />
-                        Criada em {formattedDate}
-                      </span>
-                    </div>
-                  </div>
+                  <h3 className="font-semibold text-zinc-100 text-sm sm:text-base">
+                    {area.nome}
+                  </h3>
                 </div>
 
                 {/* Lado Direito: Ações de Ordenação, Edição e Exclusão */}

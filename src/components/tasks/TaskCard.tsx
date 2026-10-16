@@ -27,9 +27,15 @@ interface TaskCardProps {
   task: Task;
   onEdit: (task: Task) => void;
   onDelete: (task: Task) => void;
+  hideAreaBadge?: boolean;
 }
 
-export const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) => {
+export const TaskCard: React.FC<TaskCardProps> = ({ 
+  task, 
+  onEdit, 
+  onDelete, 
+  hideAreaBadge = false 
+}) => {
   const { toggleTaskComplete, createSubtask, toggleSubtaskComplete, deleteSubtask } = useTasks();
   const { areas } = useAreas();
   const { metas } = useMetas();
@@ -68,24 +74,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) =>
     }
   };
 
-  // Cores e labels de Prioridade
-  const priorityConfig = {
-    alta: {
-      label: 'Alta',
-      badgeClass: 'bg-red-500/10 text-red-400 border-red-500/20',
-      dotClass: 'bg-red-500',
-    },
-    media: {
-      label: 'Média',
-      badgeClass: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-      dotClass: 'bg-amber-500',
-    },
-    baixa: {
-      label: 'Baixa',
-      badgeClass: 'bg-zinc-800 text-zinc-400 border-zinc-700/60',
-      dotClass: 'bg-zinc-500',
-    },
-  }[task.prioridade || 'media'];
+  const isHighPriority = task.prioridade === 'alta';
+  const isLowPriority = task.prioridade === 'baixa';
 
   // Formatação do prazo/horário (ex: "12 de Out." ou "12 de Out., 07:00")
   const formattedPrazo = formatPrazoComHorario(task.prazo, task.horario);
@@ -93,20 +83,20 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) =>
   return (
     <div
       className={cn(
-        "rounded-2xl transition-all duration-300 shadow-sm overflow-hidden",
+        "group relative rounded-xl transition-all duration-200 shadow-sm overflow-hidden",
         task.gerada_por_ia
           ? task.concluida
             ? "border-2 border-red-900/40 bg-zinc-950/80 opacity-70"
             : "border-2 border-red-500 bg-gradient-to-r from-red-950/80 via-zinc-950 to-red-950/50 shadow-xl shadow-red-950/80 ring-2 ring-red-500/50 animate-pulse"
           : task.concluida
             ? "border border-zinc-800/60 bg-zinc-900/40 opacity-75"
-            : "border border-zinc-800/90 bg-zinc-900/90 hover:border-zinc-600/90 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/30"
+            : "border border-zinc-800/80 bg-zinc-900/85 hover:border-zinc-700 hover:bg-zinc-900 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20"
       )}
     >
       {/* Linha Principal da Tarefa */}
       <div 
         onClick={() => setExpanded(!expanded)}
-        className="p-4 flex items-start gap-3.5 cursor-pointer select-none"
+        className="p-3.5 flex items-start gap-3 cursor-pointer select-none"
       >
         {/* Custom Checkbox Inspirado no Google Tasks com Animação de Escala */}
         <button
@@ -126,7 +116,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) =>
         </button>
 
         {/* Conteúdo Central */}
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 space-y-1.5">
+          {/* Linha 1: Título e Status de Emergência/Prioridade */}
           <div className="flex items-center gap-2 flex-wrap">
             {/* Tag de Missão de Emergência do Arquiteto */}
             {task.gerada_por_ia && (
@@ -141,8 +132,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) =>
 
             {/* Tag de Penalidade por Falha */}
             {task.gerada_por_ia && task.penalidade_falha && (
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-red-950/90 border border-red-500/60 text-red-300 text-[10px] font-extrabold uppercase tracking-tight shrink-0 shadow-xs">
-                <AlertTriangle className="w-3.5 h-3.5 text-red-400 shrink-0 animate-bounce" />
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-red-950/90 border border-red-500/60 text-red-300 text-[10px] font-extrabold uppercase tracking-tight shrink-0 shadow-xs">
+                <AlertTriangle className="w-3 h-3 text-red-400 shrink-0 animate-bounce" />
                 <span>PENALIDADE: {task.penalidade_falha}</span>
               </span>
             )}
@@ -150,84 +141,40 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) =>
             {/* Título da Tarefa */}
             <span
               className={cn(
-                "text-sm font-medium transition-all",
+                "text-sm font-semibold transition-all",
                 task.gerada_por_ia && !task.concluida && "font-bold text-red-100",
-                task.concluida ? "line-through text-zinc-500" : !task.gerada_por_ia && "text-zinc-100"
+                task.concluida ? "line-through text-zinc-500 font-normal" : !task.gerada_por_ia && "text-zinc-100"
               )}
             >
               {task.titulo}
             </span>
 
-            {/* Badge de Prioridade */}
-            <span className={cn(
-              "text-[10px] font-semibold px-2 py-0.5 rounded-full border flex items-center gap-1",
-              priorityConfig.badgeClass
-            )}>
-              <span className={cn("w-1.5 h-1.5 rounded-full", priorityConfig.dotClass)} />
-              {priorityConfig.label}
-            </span>
-
-            {/* Badge de Área de Foco */}
-            {area && (
-              <span 
-                className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-zinc-950 border border-zinc-800 text-zinc-300 flex items-center gap-1.5"
-              >
-                <div 
-                  className="w-2 h-2 rounded-full shrink-0" 
-                  style={{ backgroundColor: area.cor }} 
-                />
-                <AreaIcon name={area.icone} className="w-3 h-3 text-zinc-400" />
-                <span>{area.nome}</span>
+            {/* Badge de Prioridade (Apenas se for Alta ou Baixa) */}
+            {isHighPriority && (
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border bg-red-500/15 text-red-400 border-red-500/30 flex items-center gap-1 shrink-0">
+                <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                Alta
               </span>
             )}
-
-            {/* Badge de Meta Macro Vinculada */}
-            {linkedMeta && (
-              <span 
-                title={`Meta Macro: ${linkedMeta.titulo} (${linkedMeta.progresso_atual}/${linkedMeta.progresso_alvo} pts)`}
-                className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-emerald-950/60 border border-emerald-800/60 text-emerald-300 flex items-center gap-1 shrink-0"
-              >
-                <Target className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                <span className="truncate max-w-[120px]">{linkedMeta.titulo}</span>
-                <span className="text-[9px] text-emerald-400/90 font-mono font-semibold">
-                  ({linkedMeta.progresso_atual}/{linkedMeta.progresso_alvo})
-                </span>
-              </span>
-            )}
-
-            {/* Badge de Atributo RPG */}
-            {task.atributo_alvo && (
-              <span 
-                title={`Atributo RPG: +1 ponto em ${task.atributo_alvo}`}
-                className={cn(
-                  "text-[10px] font-semibold px-2 py-0.5 rounded-full border flex items-center gap-1 shrink-0",
-                  task.atributo_alvo === 'STR' && "bg-red-500/10 text-red-300 border-red-500/20",
-                  task.atributo_alvo === 'INT' && "bg-blue-500/10 text-blue-300 border-blue-500/20",
-                  task.atributo_alvo === 'SPR' && "bg-amber-500/10 text-amber-300 border-amber-500/20",
-                  task.atributo_alvo === 'CHA' && "bg-emerald-500/10 text-emerald-300 border-emerald-500/20",
-                  task.atributo_alvo === 'PER' && "bg-purple-500/10 text-purple-300 border-purple-500/20"
-                )}
-              >
-                <span>
-                  {task.atributo_alvo === 'STR' && '⚔️ STR'}
-                  {task.atributo_alvo === 'INT' && '🧠 INT'}
-                  {task.atributo_alvo === 'SPR' && '✨ SPR'}
-                  {task.atributo_alvo === 'CHA' && '👑 CHA'}
-                  {task.atributo_alvo === 'PER' && '👁️ PER'}
-                </span>
+            {isLowPriority && (
+              <span className="text-[10px] font-medium px-2 py-0.5 rounded-full border bg-zinc-800/60 text-zinc-400 border-zinc-700/50 flex items-center gap-1 shrink-0">
+                <span className="w-1.5 h-1.5 rounded-full bg-zinc-500" />
+                Baixa
               </span>
             )}
           </div>
 
-          {/* Subtítulo / Metadata (Prazo e Contagem de Subtarefas) */}
-          <div className="flex items-center gap-4 text-xs text-zinc-400 mt-2 flex-wrap">
+          {/* Linha 2: Badges Contextuais e Metadados (Prazo, Atributo, Área, Meta, Subtarefas) */}
+          <div className="flex items-center gap-2 text-xs text-zinc-400 flex-wrap">
+            {/* Prazo e Horário */}
             {formattedPrazo && (
-              <span className="flex items-center gap-1.2 text-blue-400 font-medium bg-blue-500/10 px-2 py-0.5 rounded-lg border border-blue-500/20">
-                <Clock className="w-3.5 h-3.5" />
+              <span className="flex items-center gap-1 text-[11px] text-blue-400 font-medium bg-blue-500/10 px-2 py-0.5 rounded-md border border-blue-500/20 shrink-0">
+                <Clock className="w-3 h-3" />
                 <span>{formattedPrazo}</span>
               </span>
             )}
 
+            {/* Recorrência */}
             {task.recorrente && (
               <span 
                 title={(() => {
@@ -243,9 +190,9 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) =>
                   }
                   return base;
                 })()}
-                className="flex items-center gap-1.2 text-purple-400 font-medium bg-purple-500/10 px-2 py-0.5 rounded-lg border border-purple-500/20"
+                className="flex items-center gap-1 text-[11px] text-purple-400 font-medium bg-purple-500/10 px-2 py-0.5 rounded-md border border-purple-500/20 shrink-0"
               >
-                <RotateCcw className="w-3.5 h-3.5" />
+                <RotateCcw className="w-3 h-3" />
                 <span>
                   {task.repeticao_intervalo && task.repeticao_intervalo > 1
                     ? `A cada ${task.repeticao_intervalo} ${
@@ -262,17 +209,68 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) =>
               </span>
             )}
 
-            {subtasks.length > 0 && (
-              <span className="flex items-center gap-1 text-zinc-400">
-                <CheckSquare className="w-3.5 h-3.5 text-zinc-500" />
+            {/* Atributo RPG */}
+            {task.atributo_alvo && (
+              <span 
+                title={`Atributo RPG: +1 ponto em ${task.atributo_alvo}`}
+                className={cn(
+                  "text-[10px] font-bold px-2 py-0.5 rounded-md border flex items-center gap-1 shrink-0 font-mono",
+                  task.atributo_alvo === 'STR' && "bg-red-500/10 text-red-300 border-red-500/20",
+                  task.atributo_alvo === 'INT' && "bg-blue-500/10 text-blue-300 border-blue-500/20",
+                  task.atributo_alvo === 'SPR' && "bg-amber-500/10 text-amber-300 border-amber-500/20",
+                  task.atributo_alvo === 'CHA' && "bg-emerald-500/10 text-emerald-300 border-emerald-500/20",
+                  task.atributo_alvo === 'PER' && "bg-purple-500/10 text-purple-300 border-purple-500/20"
+                )}
+              >
                 <span>
-                  {completedSubtasks}/{subtasks.length} subtarefas
+                  {task.atributo_alvo === 'STR' && '⚔️ STR'}
+                  {task.atributo_alvo === 'INT' && '🧠 INT'}
+                  {task.atributo_alvo === 'SPR' && '✨ SPR'}
+                  {task.atributo_alvo === 'CHA' && '👑 CHA'}
+                  {task.atributo_alvo === 'PER' && '👁️ PER'}
                 </span>
               </span>
             )}
 
+            {/* Meta Macro Vinculada */}
+            {linkedMeta && (
+              <span 
+                title={`Meta Macro: ${linkedMeta.titulo} (${linkedMeta.progresso_atual}/${linkedMeta.progresso_alvo} pts)`}
+                className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-emerald-950/60 border border-emerald-800/60 text-emerald-300 flex items-center gap-1 shrink-0"
+              >
+                <Target className="w-3 h-3 text-emerald-400 shrink-0" />
+                <span className="truncate max-w-[120px]">{linkedMeta.titulo}</span>
+                <span className="text-[9px] text-emerald-400/90 font-mono font-semibold">
+                  ({linkedMeta.progresso_atual}/{linkedMeta.progresso_alvo})
+                </span>
+              </span>
+            )}
+
+            {/* Área de Foco (Apenas se NÃO estiver oculta pela lista) */}
+            {area && !hideAreaBadge && (
+              <span 
+                className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-zinc-950 border border-zinc-800 text-zinc-300 flex items-center gap-1.5 shrink-0"
+              >
+                <div 
+                  className="w-1.5 h-1.5 rounded-full shrink-0" 
+                  style={{ backgroundColor: area.cor }} 
+                />
+                <AreaIcon name={area.icone} className="w-3 h-3 text-zinc-400" />
+                <span>{area.nome}</span>
+              </span>
+            )}
+
+            {/* Contagem de Subtarefas */}
+            {subtasks.length > 0 && (
+              <span className="flex items-center gap-1 text-[11px] text-zinc-400 shrink-0">
+                <CheckSquare className="w-3 h-3 text-zinc-500" />
+                <span>{completedSubtasks}/{subtasks.length}</span>
+              </span>
+            )}
+
+            {/* Preview de Descrição quando colapsado */}
             {task.descricao && !expanded && (
-              <span className="text-zinc-500 truncate max-w-[200px]">
+              <span className="text-zinc-500 truncate max-w-[180px] text-[11px]">
                 {task.descricao}
               </span>
             )}
@@ -280,40 +278,42 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) =>
         </div>
 
         {/* Lado Direito: Ações (Editar, Excluir, Expandir) */}
-        <div className="flex items-center gap-1 shrink-0">
-          {/* Bloqueio de Edição se for gerada por IA (O Arquiteto) */}
-          {task.gerada_por_ia ? (
-            <span
-              title="Missão de Emergência imposta pelo Arquiteto: edição bloqueada pelo sistema."
-              className="p-1.5 rounded-lg text-red-400 bg-red-500/10 border border-red-500/30 flex items-center justify-center cursor-not-allowed"
-            >
-              <Lock className="w-4 h-4" />
-            </span>
-          ) : (
+        <div className="flex items-center gap-0.5 shrink-0">
+          <div className="flex items-center gap-0.5 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+            {/* Bloqueio de Edição se for gerada por IA (O Arquiteto) */}
+            {task.gerada_por_ia ? (
+              <span
+                title="Missão de Emergência imposta pelo Arquiteto: edição bloqueada pelo sistema."
+                className="p-1.5 rounded-lg text-red-400 bg-red-500/10 border border-red-500/30 flex items-center justify-center cursor-not-allowed"
+              >
+                <Lock className="w-3.5 h-3.5" />
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit(task);
+                }}
+                title="Editar tarefa"
+                className="p-1.5 rounded-lg text-zinc-400 hover:text-blue-400 hover:bg-zinc-800 transition-colors cursor-pointer"
+              >
+                <Pencil className="w-3.5 h-3.5" />
+              </button>
+            )}
+
             <button
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
-                onEdit(task);
+                onDelete(task);
               }}
-              title="Editar tarefa"
-              className="p-1.5 rounded-lg text-zinc-400 hover:text-blue-400 hover:bg-zinc-800 transition-colors"
+              title="Excluir tarefa"
+              className="p-1.5 rounded-lg text-zinc-400 hover:text-red-400 hover:bg-zinc-800 transition-colors cursor-pointer"
             >
-              <Pencil className="w-4 h-4" />
+              <Trash2 className="w-3.5 h-3.5" />
             </button>
-          )}
-
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete(task);
-            }}
-            title="Excluir tarefa"
-            className="p-1.5 rounded-lg text-zinc-400 hover:text-red-400 hover:bg-zinc-800 transition-colors"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
+          </div>
 
           <button
             type="button"
@@ -322,7 +322,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) =>
               setExpanded(!expanded);
             }}
             title={expanded ? 'Recolher detalhes' : 'Expandir detalhes'}
-            className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 transition-colors"
+            className="p-1.5 rounded-lg text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800 transition-colors cursor-pointer"
           >
             {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
           </button>

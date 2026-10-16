@@ -64,34 +64,34 @@ export const Conquistas: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         
         {/* Card Título Equipado */}
-        <div className="md:col-span-2 bg-gradient-to-r from-amber-950/40 via-zinc-900 to-zinc-950 border border-amber-500/30 rounded-3xl p-6 shadow-xl relative overflow-hidden flex flex-col justify-between">
+        <div className="md:col-span-2 bg-gradient-to-r from-amber-950/40 via-zinc-900 to-zinc-950 border border-amber-500/30 rounded-2xl p-4 sm:p-5 shadow-lg relative overflow-hidden flex flex-col justify-between">
           <div className="absolute -top-10 -right-10 w-44 h-44 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
 
-          <div className="space-y-2 relative z-10">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-semibold">
+          <div className="space-y-1.5 relative z-10">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-semibold">
               <Sparkles className="w-3.5 h-3.5" />
               Título Ativo em Exibição
             </span>
 
             {tituloEquipado ? (
-              <div className="pt-2">
-                <h2 className="text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-amber-100">
+              <div className="pt-1">
+                <h2 className="text-xl sm:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-amber-100">
                   [ {tituloEquipado.titulo} ]
                 </h2>
-                <p className="text-sm text-zinc-300 mt-1 max-w-lg">
+                <p className="text-xs sm:text-sm text-zinc-300 mt-1 max-w-lg">
                   {tituloEquipado.descricao}
                 </p>
-                <div className="mt-3 flex items-center gap-2 text-xs text-amber-400/90 font-medium">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                <div className="mt-2.5 flex items-center gap-2 text-xs text-amber-400/90 font-medium">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
                   <span>Exibido com destaque no topo do seu Dashboard e Perfil</span>
                 </div>
               </div>
             ) : (
-              <div className="pt-2">
-                <h2 className="text-xl sm:text-2xl font-bold text-zinc-400">
+              <div className="pt-1">
+                <h2 className="text-lg sm:text-xl font-bold text-zinc-400">
                   [ Nenhum Título Equipado ]
                 </h2>
-                <p className="text-sm text-zinc-500 mt-1">
+                <p className="text-xs sm:text-sm text-zinc-500 mt-1">
                   Selecione um dos seus títulos desbloqueados abaixo e clique em "Equipar".
                 </p>
               </div>
@@ -100,28 +100,28 @@ export const Conquistas: React.FC = () => {
         </div>
 
         {/* Card de Progresso da Galeria */}
-        <div className="bg-zinc-950/80 border border-zinc-800 rounded-3xl p-6 shadow-xl flex flex-col justify-between space-y-4">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 text-zinc-400 text-xs font-semibold uppercase tracking-wider">
-              <Medal className="w-4 h-4 text-amber-400" />
+        <div className="bg-zinc-950/80 border border-zinc-800 rounded-2xl p-4 sm:p-5 shadow-lg flex flex-col justify-between space-y-3">
+          <div className="space-y-0.5">
+            <div className="flex items-center gap-1.5 text-zinc-400 text-xs font-semibold uppercase tracking-wider">
+              <Medal className="w-3.5 h-3.5 text-amber-400" />
               <span>Conquistas Totais</span>
             </div>
-            <div className="flex items-baseline gap-2 pt-1">
-              <span className="text-4xl font-black text-zinc-100 font-mono">
+            <div className="flex items-baseline gap-2 pt-0.5">
+              <span className="text-3xl font-black text-zinc-100 font-mono">
                 {totalDesbloqueados}
               </span>
-              <span className="text-zinc-500 font-medium text-sm">
+              <span className="text-zinc-500 font-medium text-xs sm:text-sm">
                 / {totalTitulos} desbloqueados
               </span>
             </div>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <div className="flex items-center justify-between text-xs font-semibold">
               <span className="text-zinc-400">Progresso da Galeria</span>
               <span className="text-amber-400 font-mono">{porcentagemDesbloqueada}%</span>
             </div>
-            <div className="w-full bg-zinc-900 rounded-full h-2.5 overflow-hidden border border-zinc-800">
+            <div className="w-full bg-zinc-900 rounded-full h-2 overflow-hidden border border-zinc-800">
               <div
                 className="bg-gradient-to-r from-amber-500 to-amber-300 h-full rounded-full transition-all duration-500 shadow-sm"
                 style={{ width: `${porcentagemDesbloqueada}%` }}

@@ -1,7 +1,17 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Flame, Shield, Zap, Brain, Sparkles, Users, Target, Heart, Bed, Coins, Award } from 'lucide-react';
-import { Progress } from '@/components/ui/progress';
+import { 
+  Flame, 
+  Shield, 
+  Zap, 
+  Brain, 
+  Sparkles, 
+  Users, 
+  Target, 
+  Heart, 
+  Bed, 
+  Award 
+} from 'lucide-react';
 import { useGamificacao, xpParaAtingirNivel } from '@/contexts/GamificacaoContext';
 import { useConquistas } from '@/contexts/ConquistasContext';
 import { cn } from '@/lib/utils';
@@ -13,10 +23,9 @@ const ATRIBUTOS_RPG = [
     nome: 'Força',
     subtitulo: 'Vitalidade',
     Icon: Flame,
-    accentColor: 'text-red-400',
-    borderColor: 'border-red-500/25 hover:border-red-500/50 hover:shadow-red-500/10',
-    bgColor: 'bg-red-500/10',
-    barColor: 'bg-red-500',
+    color: 'text-red-400',
+    borderColor: 'border-red-500/25 hover:border-red-500/50',
+    bgColor: 'bg-red-500/10 hover:bg-red-500/15',
   },
   {
     chave: 'atributo_int' as const,
@@ -24,10 +33,9 @@ const ATRIBUTOS_RPG = [
     nome: 'Inteligência',
     subtitulo: 'Foco',
     Icon: Brain,
-    accentColor: 'text-blue-400',
-    borderColor: 'border-blue-500/25 hover:border-blue-500/50 hover:shadow-blue-500/10',
-    bgColor: 'bg-blue-500/10',
-    barColor: 'bg-blue-500',
+    color: 'text-blue-400',
+    borderColor: 'border-blue-500/25 hover:border-blue-500/50',
+    bgColor: 'bg-blue-500/10 hover:bg-blue-500/15',
   },
   {
     chave: 'atributo_spr' as const,
@@ -35,10 +43,9 @@ const ATRIBUTOS_RPG = [
     nome: 'Espírito',
     subtitulo: 'Sabedoria',
     Icon: Sparkles,
-    accentColor: 'text-amber-400',
-    borderColor: 'border-amber-500/25 hover:border-amber-500/50 hover:shadow-amber-500/10',
-    bgColor: 'bg-amber-500/10',
-    barColor: 'bg-amber-400',
+    color: 'text-amber-400',
+    borderColor: 'border-amber-500/25 hover:border-amber-500/50',
+    bgColor: 'bg-amber-500/10 hover:bg-amber-500/15',
   },
   {
     chave: 'atributo_cha' as const,
@@ -46,10 +53,9 @@ const ATRIBUTOS_RPG = [
     nome: 'Carisma',
     subtitulo: 'Liderança',
     Icon: Users,
-    accentColor: 'text-emerald-400',
-    borderColor: 'border-emerald-500/25 hover:border-emerald-500/50 hover:shadow-emerald-500/10',
-    bgColor: 'bg-emerald-500/10',
-    barColor: 'bg-emerald-500',
+    color: 'text-emerald-400',
+    borderColor: 'border-emerald-500/25 hover:border-emerald-500/50',
+    bgColor: 'bg-emerald-500/10 hover:bg-emerald-500/15',
   },
   {
     chave: 'atributo_per' as const,
@@ -57,10 +63,9 @@ const ATRIBUTOS_RPG = [
     nome: 'Percepção',
     subtitulo: 'Organização',
     Icon: Target,
-    accentColor: 'text-purple-400',
-    borderColor: 'border-purple-500/25 hover:border-purple-500/50 hover:shadow-purple-500/10',
-    bgColor: 'bg-purple-500/10',
-    barColor: 'bg-purple-500',
+    color: 'text-purple-400',
+    borderColor: 'border-purple-500/25 hover:border-purple-500/50',
+    bgColor: 'bg-purple-500/10 hover:bg-purple-500/15',
   },
 ];
 
@@ -70,7 +75,7 @@ export const PlayerStatusCard: React.FC = () => {
 
   if (loading || !perfil) {
     return (
-      <div className="h-44 rounded-3xl border border-zinc-800 bg-zinc-900/60 animate-pulse" />
+      <div className="h-32 rounded-2xl border border-zinc-800 bg-zinc-900/60 animate-pulse" />
     );
   }
 
@@ -99,25 +104,27 @@ export const PlayerStatusCard: React.FC = () => {
   return (
     <section
       id="player-status-card"
-      className="relative overflow-hidden rounded-3xl border border-zinc-800 bg-gradient-to-r from-indigo-950/60 via-zinc-900 to-zinc-950 p-6 shadow-xl"
+      className="relative overflow-hidden rounded-2xl border border-zinc-800/80 bg-gradient-to-r from-indigo-950/40 via-zinc-900/90 to-zinc-950 p-4 sm:p-5 shadow-xl backdrop-blur-sm"
     >
-      <div className="absolute -top-10 -left-10 w-44 h-44 bg-indigo-600/15 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -top-10 -left-10 w-44 h-44 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
 
-      {/* Topo: Nível, XP, Barras de Sobrevivência (HP/MP) e Streak */}
-      <div className="relative z-10 flex flex-col lg:flex-row lg:items-center gap-5">
-        {/* Escudo de Nível, Título Equipado e Display de Gold */}
-        <div className="flex items-center gap-4 shrink-0">
-          <div className="relative w-16 h-16 shrink-0 rounded-2xl bg-indigo-500/15 border border-indigo-400/30 flex items-center justify-center shadow-lg shadow-indigo-900/40">
-            <Shield className="w-14 h-14 text-indigo-400/30 absolute" />
-            <span className="text-2xl font-extrabold text-indigo-200 relative">{nivel}</span>
+      {/* Topo: Identidade, Barras de Status Vitais e Descanso */}
+      <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        
+        {/* Identidade do Jogador: Nível, Título e Saldo de Gold */}
+        <div className="flex items-center gap-3 shrink-0">
+          <div className="relative w-12 h-12 rounded-xl bg-indigo-500/15 border border-indigo-400/30 flex items-center justify-center shadow-md shadow-indigo-950/40 shrink-0">
+            <Shield className="w-10 h-10 text-indigo-400/25 absolute" />
+            <span className="text-xl font-black text-indigo-200 relative">{nivel}</span>
           </div>
+
           <div className="space-y-1">
-            {/* Título Equipado */}
-            <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-sm font-bold text-zinc-100">Nível {nivel}</span>
               <Link
                 to="/conquistas"
-                className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-amber-500/15 hover:bg-amber-500/25 active:bg-amber-500/35 border border-amber-400/40 text-amber-200 text-[10px] font-black uppercase tracking-wider shadow-xs shadow-amber-500/10 transition-all cursor-pointer group"
-                title="Galeria de Títulos e Conquistas (Clique para ver/equipar)"
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/30 text-amber-200 text-[10px] font-black uppercase tracking-wider transition-colors cursor-pointer group"
+                title="Galeria de Títulos e Conquistas"
               >
                 <Award className="w-3 h-3 text-amber-400 group-hover:scale-110 transition-transform" />
                 <span className="truncate max-w-[140px]">
@@ -126,73 +133,70 @@ export const PlayerStatusCard: React.FC = () => {
               </Link>
             </div>
 
-            <p className="text-lg font-bold text-zinc-100 leading-tight">Nível {nivel}</p>
-
-            {/* Display de Gold */}
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 shadow-xs shadow-amber-500/10">
-              <span className="text-sm">🪙</span>
-              <span className="text-xs font-black font-mono tracking-tight text-amber-200">
-                {goldAtual} <span className="text-[10px] uppercase font-bold text-amber-400/90 font-sans">Gold</span>
-              </span>
+            <div className="flex items-center gap-2">
+              <Link
+                to="/mercado"
+                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 transition-colors shadow-xs"
+                title="Ver saldo no Mercado de Recompensas"
+              >
+                <span className="text-xs">🪙</span>
+                <span className="text-xs font-mono font-bold text-amber-200">{goldAtual}</span>
+                <span className="text-[9px] uppercase font-bold text-amber-400/80">Gold</span>
+              </Link>
             </div>
           </div>
         </div>
 
-        {/* Centro: Barra de XP + Barras de HP e MP */}
-        <div className="flex-1 min-w-0 space-y-3">
+        {/* Centro: Barra de XP + Vitais HP e MP */}
+        <div className="flex-1 min-w-[240px] space-y-2">
           {/* Barra de XP */}
-          <div className="space-y-1.5">
+          <div className="space-y-1">
             <div className="flex items-center justify-between text-xs">
               <span className="flex items-center gap-1.5 font-semibold text-zinc-300">
-                <Zap className="w-3.5 h-3.5 text-amber-400" />
+                <Zap className="w-3 h-3 text-amber-400" />
                 XP: {perfil.xp_acumulado} / {xpProximoNivel}
               </span>
-              <span className="text-zinc-500">
+              <span className="text-[10px] text-zinc-500 font-mono">
                 faltam {Math.max(0, xpProximoNivel - perfil.xp_acumulado)} XP
               </span>
             </div>
-            <Progress
-              value={progressoNivel}
-              className="h-2.5"
-              indicatorClassName="bg-gradient-to-r from-indigo-500 to-amber-400"
-            />
+            <div className="h-2 w-full bg-zinc-900 rounded-full overflow-hidden border border-zinc-800">
+              <div
+                className="h-full bg-gradient-to-r from-indigo-500 via-amber-400 to-amber-300 rounded-full transition-all duration-500"
+                style={{ width: `${Math.min(100, Math.max(0, progressoNivel))}%` }}
+              />
+            </div>
           </div>
 
-          {/* Barras de Status de Sobrevivência: HP (Vermelho) e MP (Azul) */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-0.5">
-            {/* Barra de HP: Vermelha vibrante */}
-            <div className="space-y-1.5 bg-zinc-950/60 border border-red-500/30 rounded-xl p-2.5 shadow-inner">
-              <div className="flex items-center justify-between text-xs">
-                <span className="flex items-center gap-1.5 font-bold text-red-400">
-                  <Heart className="w-3.5 h-3.5 fill-red-500/30 text-red-500 animate-pulse" />
-                  HP: {hpAtual} / {hpMaximo}
-                </span>
-                <span className="text-[11px] font-mono text-red-400/90 font-bold">
-                  {hpAtual === 0 ? 'Exausto! ⚠️' : `${Math.round(progressoHp)}%`}
+          {/* Barras de HP e MP lado a lado */}
+          <div className="grid grid-cols-2 gap-2.5">
+            {/* HP */}
+            <div className="bg-zinc-950/60 border border-red-500/25 rounded-xl px-2.5 py-1.5 flex items-center justify-between">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <Heart className="w-3.5 h-3.5 text-red-500 fill-red-500/30 shrink-0" />
+                <span className="text-xs font-bold text-red-400 truncate">
+                  HP {hpAtual}/{hpMaximo}
                 </span>
               </div>
-              <div className="h-2.5 w-full bg-zinc-900 rounded-full overflow-hidden border border-red-950/80">
+              <div className="w-14 h-1.5 bg-zinc-900 rounded-full overflow-hidden border border-red-950/80 shrink-0 ml-2">
                 <div
-                  className="h-full bg-gradient-to-r from-red-600 via-red-500 to-rose-500 rounded-full transition-all duration-500 shadow-sm shadow-red-500/50"
+                  className="h-full bg-gradient-to-r from-red-600 to-rose-400 rounded-full transition-all duration-500"
                   style={{ width: `${progressoHp}%` }}
                 />
               </div>
             </div>
 
-            {/* Barra de MP: Azul brilhante */}
-            <div className="space-y-1.5 bg-zinc-950/60 border border-blue-500/30 rounded-xl p-2.5 shadow-inner">
-              <div className="flex items-center justify-between text-xs">
-                <span className="flex items-center gap-1.5 font-bold text-blue-400">
-                  <Sparkles className="w-3.5 h-3.5 text-blue-400" />
-                  MP: {mpAtual} / {mpMaximo}
-                </span>
-                <span className="text-[11px] font-mono text-blue-400/90 font-bold">
-                  {mpAtual === 0 ? 'Esgotado! ⚠️' : `${Math.round(progressoMp)}%`}
+            {/* MP */}
+            <div className="bg-zinc-950/60 border border-blue-500/25 rounded-xl px-2.5 py-1.5 flex items-center justify-between">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <Sparkles className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                <span className="text-xs font-bold text-blue-400 truncate">
+                  MP {mpAtual}/{mpMaximo}
                 </span>
               </div>
-              <div className="h-2.5 w-full bg-zinc-900 rounded-full overflow-hidden border border-blue-950/80">
+              <div className="w-14 h-1.5 bg-zinc-900 rounded-full overflow-hidden border border-blue-950/80 shrink-0 ml-2">
                 <div
-                  className="h-full bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-400 rounded-full transition-all duration-500 shadow-sm shadow-blue-500/50"
+                  className="h-full bg-gradient-to-r from-blue-600 to-cyan-400 rounded-full transition-all duration-500"
                   style={{ width: `${progressoMp}%` }}
                 />
               </div>
@@ -200,20 +204,16 @@ export const PlayerStatusCard: React.FC = () => {
           </div>
         </div>
 
-        {/* Lado Direito: Streak, A Taverna e O Mercado */}
-        <div className="flex flex-row lg:flex-col items-stretch gap-2 self-start lg:self-auto shrink-0">
-          {/* Streak */}
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-orange-500/10 border border-orange-500/20">
-            <Flame className="w-4 h-4 text-orange-400" />
+        {/* Lado Direito: Streak e Botão Único de Descanso (A Taverna) */}
+        <div className="flex items-center md:flex-col justify-between md:justify-center gap-2 shrink-0">
+          <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-300">
+            <Flame className="w-3.5 h-3.5 text-orange-400" />
             <div className="leading-tight">
-              <p className="text-sm font-bold text-orange-300">🔥 {perfil.streak_atual} dias</p>
-              <p className="text-[9px] uppercase tracking-wider text-orange-400/80">
-                ofensiva diária
-              </p>
+              <p className="text-xs font-bold font-mono">🔥 {perfil.streak_atual} {perfil.streak_atual === 1 ? 'dia' : 'dias'}</p>
+              <p className="text-[8px] uppercase tracking-wider text-orange-400/80 font-semibold">Ofensiva</p>
             </div>
           </div>
 
-          {/* A Taverna: Botão de Cura Completa (Descansar) */}
           <button
             onClick={() => descansarCompleto()}
             className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 active:bg-amber-500/35 border border-amber-500/35 text-amber-200 text-xs font-bold shadow-xs hover:shadow-amber-500/20 transition-all cursor-pointer group"
@@ -222,86 +222,47 @@ export const PlayerStatusCard: React.FC = () => {
             <Bed className="w-3.5 h-3.5 text-amber-400 group-hover:scale-110 transition-transform" />
             <span>Descansar</span>
           </button>
-
-          {/* O Mercado */}
-          <Link
-            to="/mercado"
-            className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/20 to-amber-600/20 hover:from-amber-500/30 hover:to-amber-600/30 active:from-amber-500/40 active:to-amber-600/40 border border-amber-500/40 text-amber-200 text-xs font-bold shadow-xs hover:shadow-amber-500/25 transition-all cursor-pointer group"
-            title="Visitar O Mercado de Recompensas"
-          >
-            <Coins className="w-3.5 h-3.5 text-amber-400 group-hover:scale-110 transition-transform" />
-            <span>O Mercado</span>
-          </Link>
-
-          {/* Títulos e Conquistas */}
-          <Link
-            to="/conquistas"
-            className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-purple-500/20 to-indigo-600/20 hover:from-purple-500/30 hover:to-indigo-600/30 active:from-purple-500/40 active:to-indigo-600/40 border border-purple-500/40 text-purple-200 text-xs font-bold shadow-xs hover:shadow-purple-500/25 transition-all cursor-pointer group"
-            title="Galeria de Títulos e Conquistas"
-          >
-            <Award className="w-3.5 h-3.5 text-amber-400 group-hover:scale-110 transition-transform" />
-            <span>Conquistas</span>
-          </Link>
         </div>
       </div>
 
-      {/* 5 Pilares de Evolução RPG */}
-      <div className="relative z-10 pt-5 mt-5 border-t border-zinc-800/80">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-amber-400" />
-            <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-300">
-              Pilares de Evolução RPG
-            </h3>
+      {/* Faixa Inferior Compacta: 5 Atributos RPG */}
+      <div className="relative z-10 pt-3 mt-3 border-t border-zinc-800/60">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-zinc-400 shrink-0">
+            <Sparkles className="w-3 h-3 text-amber-400" />
+            <span>Atributos RPG</span>
+            <span className="text-[10px] text-zinc-500 font-mono font-normal">({totalAtributos} pts)</span>
           </div>
-          <span className="text-[11px] font-medium text-zinc-500">
-            Total acumulado: <strong className="text-zinc-300 font-mono">{totalAtributos}</strong> pts
-          </span>
-        </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-          {ATRIBUTOS_RPG.map((attr) => {
-            const valor = perfil[attr.chave] ?? 0;
-            const Icon = attr.Icon;
-            return (
-              <div
-                key={attr.sigla}
-                className={cn(
-                  "group relative overflow-hidden rounded-2xl border p-3.5 transition-all duration-300 hover:-translate-y-0.5 bg-zinc-950/60 backdrop-blur-xs cursor-default",
-                  attr.borderColor
-                )}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <div className={cn("p-1.5 rounded-xl border border-zinc-800/80", attr.bgColor, attr.accentColor)}>
-                    <Icon className="w-4 h-4" />
+          {/* Chips Horizontais dos 5 Atributos */}
+          <div className="grid grid-cols-5 gap-1.5 sm:gap-2 flex-1 sm:max-w-xl sm:ml-auto">
+            {ATRIBUTOS_RPG.map((attr) => {
+              const valor = perfil[attr.chave] ?? 0;
+              const Icon = attr.Icon;
+              return (
+                <div
+                  key={attr.sigla}
+                  className={cn(
+                    "flex items-center justify-between px-2 py-1 rounded-lg border transition-all duration-200 bg-zinc-950/70 backdrop-blur-xs cursor-default",
+                    attr.borderColor,
+                    attr.bgColor
+                  )}
+                  title={`${attr.nome} (${attr.subtitulo}): ${valor} pts acumulados`}
+                >
+                  <div className="flex items-center gap-1 min-w-0">
+                    <Icon className={cn("w-3 h-3 shrink-0", attr.color)} />
+                    <span className="text-[10px] font-mono font-bold text-zinc-400 hidden sm:inline">{attr.sigla}</span>
                   </div>
-                  <span className="text-[10px] font-mono font-bold tracking-wider px-1.5 py-0.5 rounded-md bg-zinc-900 border border-zinc-800 text-zinc-400">
-                    {attr.sigla}
+                  <span className={cn("text-xs font-black font-mono ml-1", attr.color)}>
+                    {valor}
                   </span>
                 </div>
-
-                <div className="space-y-0.5">
-                  <div className="flex items-baseline justify-between">
-                    <p className="text-xs font-semibold text-zinc-200">{attr.nome}</p>
-                    <span className={cn("text-base font-extrabold font-mono", attr.accentColor)}>
-                      {valor}
-                    </span>
-                  </div>
-                  <p className="text-[10px] text-zinc-500 truncate">{attr.subtitulo}</p>
-                </div>
-
-                {/* Mini-barra de progresso relativa ao ciclo atual (de 10 em 10 pontos) */}
-                <div className="mt-2.5 h-1 w-full bg-zinc-800/80 rounded-full overflow-hidden">
-                  <div
-                    className={cn("h-full rounded-full transition-all duration-500", attr.barColor)}
-                    style={{ width: `${Math.min(100, (valor % 10 === 0 && valor > 0 ? 10 : valor % 10) * 10)}%` }}
-                  />
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </div>
     </section>
   );
 };
+

@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
 import { 
   Sun, 
   Plus, 
@@ -11,12 +10,9 @@ import {
   Flame,
   Award,
   X,
-  Sparkles,
-  Bed,
-  Coins
+  Sparkles
 } from 'lucide-react';
 import { useTasks, Task } from '@/contexts/TasksContext';
-import { useGamificacao } from '@/contexts/GamificacaoContext';
 import { TaskCard } from '@/components/tasks/TaskCard';
 import { TaskModal } from '@/components/tasks/TaskModal';
 import { PlayerStatusCard } from '@/components/gamificacao/PlayerStatusCard';
@@ -41,11 +37,10 @@ export const Dashboard: React.FC = () => {
     openEditTaskModal,
     closeTaskModal
   } = useTasks();
-  const { perfil, descansarCompleto } = useGamificacao();
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
-  const [completedExpanded, setCompletedExpanded] = useState(false);
+  const [completedExpanded, setCompletedExpanded] = useState<boolean | null>(null);
   const [includeOverdue, setIncludeOverdue] = useState(true);
   const [showVitoriaToast, setShowVitoriaToast] = useState(false);
   const prevPendingRef = useRef<number | null>(null);
@@ -90,6 +85,10 @@ export const Dashboard: React.FC = () => {
     ? Math.round((completedTodayCount / totalTodayCount) * 100) 
     : 100;
 
+  const isCompletedVisible = completedExpanded !== null 
+    ? completedExpanded 
+    : (pendingCount === 0);
+
   // Gatilho 1 (Vitória Diária): aciona os confetes e Toast quando o Progresso do Dia atingir 100%
   useEffect(() => {
     if (
@@ -119,41 +118,22 @@ export const Dashboard: React.FC = () => {
     <div className="space-y-6 animate-in fade-in duration-200 pb-16">
       
       {/* Header da Página */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-800/80 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-800/80 pb-4">
         <div>
           <div className="flex items-center gap-2.5">
-            <div className="p-2.5 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20 shadow-sm">
-              <Sun className="w-6 h-6 animate-pulse" />
+            <div className="p-2 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20 shadow-sm">
+              <Sun className="w-5 h-5 animate-pulse" />
             </div>
-            <h1 className="text-2xl font-bold text-zinc-100 tracking-tight">
+            <h1 className="text-xl sm:text-2xl font-bold text-zinc-100 tracking-tight">
               Tarefas do Dia
             </h1>
           </div>
-          <p className="text-sm text-zinc-400 mt-1 capitalize">
+          <p className="text-xs sm:text-sm text-zinc-400 mt-1 capitalize">
             {formattedToday}
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5 self-start sm:self-auto">
-          {/* Acesso rápido ao Mercado e Saldo de Gold */}
-          <Link
-            to="/mercado"
-            className="bg-amber-500/10 hover:bg-amber-500/20 active:bg-amber-500/30 text-amber-300 border border-amber-500/30 font-bold px-3.5 py-2.5 rounded-xl shadow-xs flex items-center justify-center gap-2 transition-all cursor-pointer text-sm group"
-            title="Acessar O Mercado de Recompensas"
-          >
-            <span className="text-base group-hover:scale-110 transition-transform">🪙</span>
-            <span>{perfil?.gold_atual ?? perfil?.moedas ?? 0} Gold</span>
-          </Link>
-
-          <button
-            onClick={() => descansarCompleto()}
-            className="bg-amber-500/10 hover:bg-amber-500/20 active:bg-amber-500/30 text-amber-300 border border-amber-500/30 font-medium px-3.5 py-2.5 rounded-xl shadow-sm flex items-center justify-center gap-2 transition-all cursor-pointer text-sm"
-            title="Recupera todo HP e MP (A Taverna)"
-          >
-            <Bed className="w-4 h-4 stroke-[2.2] text-amber-400" />
-            <span>Cura Completa (Descansar)</span>
-          </button>
-
+        <div className="flex items-center gap-2.5 self-start sm:self-auto">
           <button
             onClick={() => openCreateTaskModal()}
             className="bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-medium px-4 py-2.5 rounded-xl shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2 transition-all cursor-pointer text-sm"
@@ -168,54 +148,64 @@ export const Dashboard: React.FC = () => {
       <PlayerStatusCard />
 
       {/* Widget do Dashboard / Banner Principal */}
-      <div className="bg-gradient-to-r from-zinc-900 via-zinc-900/90 to-zinc-950 border border-zinc-800 rounded-3xl p-6 shadow-xl relative overflow-hidden">
+      <div className="bg-gradient-to-r from-zinc-900 via-zinc-900/90 to-zinc-950 border border-zinc-800 rounded-2xl p-4 sm:p-5 shadow-lg relative overflow-hidden">
         {/* Glow de fundo */}
         <div className="absolute -top-12 -right-12 w-48 h-48 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-12 -left-12 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6 relative z-10">
           
           {/* Lado Esquerdo: Frase & Contador */}
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <div className="flex items-center gap-2">
               {pendingCount === 0 ? (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold">
                   <Award className="w-3.5 h-3.5" />
                   Dia Concluído!
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-semibold">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-semibold">
                   <Flame className="w-3.5 h-3.5" />
                   Foco Diário
                 </span>
               )}
             </div>
 
-            <div className="flex items-baseline gap-3">
-              <span className="text-4xl sm:text-5xl font-extrabold text-zinc-100 tracking-tight">
-                {pendingCount}
-              </span>
-              <span className="text-base sm:text-lg font-medium text-zinc-400">
-                {pendingCount === 1 ? 'tarefa pendente hoje' : 'tarefas pendentes hoje'}
-              </span>
-            </div>
-
-            <p className="text-xs text-zinc-400 max-w-lg">
-              {pendingCount === 0 
-                ? 'Excelente! Você completou todas as suas demandas para a data de hoje.'
-                : 'Suas tarefas do dia estão centralizadas abaixo. Marque-as conforme as for realizando.'}
-            </p>
+            {pendingCount === 0 ? (
+              <div>
+                <h2 className="text-xl sm:text-2xl font-bold text-zinc-100 tracking-tight">
+                  Todas as tarefas de hoje foram concluídas! 🎉
+                </h2>
+                <p className="text-xs text-zinc-400 mt-1">
+                  Excelente constância, Caçador. Todo o XP, Gold e Atributos foram creditados no seu perfil.
+                </p>
+              </div>
+            ) : (
+              <div>
+                <div className="flex items-baseline gap-2.5">
+                  <span className="text-3xl sm:text-4xl font-extrabold text-zinc-100 tracking-tight">
+                    {pendingCount}
+                  </span>
+                  <span className="text-sm sm:text-base font-medium text-zinc-400">
+                    {pendingCount === 1 ? 'tarefa pendente hoje' : 'tarefas pendentes hoje'}
+                  </span>
+                </div>
+                <p className="text-xs text-zinc-400 mt-0.5">
+                  Suas tarefas do dia estão centralizadas abaixo. Conclua-as para acumular recompensas.
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Lado Direito: Barra de Progresso do Dia */}
-          <div className="bg-zinc-950/80 border border-zinc-800/80 rounded-2xl p-4 md:w-64 space-y-3 shrink-0">
+          <div className="bg-zinc-950/80 border border-zinc-800/80 rounded-xl p-3.5 md:w-60 space-y-2 shrink-0">
             <div className="flex items-center justify-between text-xs">
               <span className="font-semibold text-zinc-300">Progresso do Dia</span>
               <span className="font-bold text-blue-400">{completionPercentage}%</span>
             </div>
 
             {/* Progress bar */}
-            <div className="w-full bg-zinc-900 rounded-full h-2.5 overflow-hidden border border-zinc-800">
+            <div className="w-full bg-zinc-900 rounded-full h-2 overflow-hidden border border-zinc-800">
               <div 
                 className="bg-gradient-to-r from-blue-600 to-blue-400 h-full rounded-full transition-all duration-500 shadow-sm"
                 style={{ width: `${completionPercentage}%` }}
@@ -306,29 +296,14 @@ export const Dashboard: React.FC = () => {
             </div>
           )}
 
-          {/* Se todas as pendentes forem concluídas mas existem concluídas hoje */}
-          {displayPendingTasks.length === 0 && todayCompletedTasks.length > 0 && (
-            <div className="bg-emerald-950/20 border border-emerald-900/30 rounded-2xl p-6 text-center space-y-2">
-              <div className="w-12 h-12 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center mx-auto">
-                <CheckCircle2 className="w-6 h-6" />
-              </div>
-              <h3 className="text-base font-bold text-emerald-300">
-                Parabéns! Todas as tarefas de hoje foram concluídas.
-              </h3>
-              <p className="text-xs text-zinc-400">
-                Confira a lista de tarefas concluídas logo abaixo.
-              </p>
-            </div>
-          )}
-
           {/* Acordeão de Tarefas Concluídas Hoje */}
           {todayCompletedTasks.length > 0 && (
-            <div className="pt-2">
+            <div className="pt-1">
               <button
-                onClick={() => setCompletedExpanded(!completedExpanded)}
+                onClick={() => setCompletedExpanded(!isCompletedVisible)}
                 className="flex items-center gap-2 text-xs font-semibold text-zinc-400 hover:text-zinc-200 transition-colors py-2 px-3 rounded-xl hover:bg-zinc-900/60 cursor-pointer border border-transparent hover:border-zinc-800"
               >
-                {completedExpanded ? (
+                {isCompletedVisible ? (
                   <ChevronDown className="w-4 h-4 text-zinc-500" />
                 ) : (
                   <ChevronRight className="w-4 h-4 text-zinc-500" />
@@ -337,8 +312,8 @@ export const Dashboard: React.FC = () => {
                 <span>Concluídas Hoje ({todayCompletedTasks.length})</span>
               </button>
 
-              {completedExpanded && (
-                <div className="space-y-2.5 mt-3 pl-2 border-l-2 border-zinc-800">
+              {isCompletedVisible && (
+                <div className="space-y-2 mt-2.5 pl-2 border-l-2 border-zinc-800/80">
                   {todayCompletedTasks.map((task) => (
                     <TaskCard
                       key={task.id}
