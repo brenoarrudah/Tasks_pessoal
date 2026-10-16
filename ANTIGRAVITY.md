@@ -1,4 +1,6 @@
-# Gestor Pessoal de Tarefas
+# Gestor Pessoal de Tarefas (v2.0.0 — Solo Leveling / Jogo Infinito)
+
+## Versão Atual: `2.0.0`
 
 ## Visão geral do projeto
 
