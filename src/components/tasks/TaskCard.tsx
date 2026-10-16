@@ -10,7 +10,10 @@ import {
   CheckSquare,
   CornerDownRight,
   RotateCcw,
-  Target
+  Target,
+  AlertTriangle,
+  Lock,
+  Skull
 } from 'lucide-react';
 import { Task, useTasks } from '@/contexts/TasksContext';
 import { useAreas } from '@/contexts/AreasContext';
@@ -90,10 +93,14 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) =>
   return (
     <div
       className={cn(
-        "bg-zinc-900/90 border rounded-2xl transition-all duration-300 shadow-sm overflow-hidden",
-        task.concluida
-          ? "border-zinc-800/60 bg-zinc-900/40 opacity-75"
-          : "border-zinc-800/90 hover:border-zinc-600/90 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/30"
+        "rounded-2xl transition-all duration-300 shadow-sm overflow-hidden",
+        task.gerada_por_ia
+          ? task.concluida
+            ? "border-2 border-red-900/40 bg-zinc-950/80 opacity-70"
+            : "border-2 border-red-500 bg-gradient-to-r from-red-950/80 via-zinc-950 to-red-950/50 shadow-xl shadow-red-950/80 ring-2 ring-red-500/50 animate-pulse"
+          : task.concluida
+            ? "border border-zinc-800/60 bg-zinc-900/40 opacity-75"
+            : "border border-zinc-800/90 bg-zinc-900/90 hover:border-zinc-600/90 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/30"
       )}
     >
       {/* Linha Principal da Tarefa */}
@@ -110,6 +117,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) =>
             "hover:scale-110 active:scale-90",
             task.concluida
               ? "bg-blue-600 border-blue-600 text-white shadow-xs"
+              : task.gerada_por_ia
+              ? "border-red-500 hover:border-red-400 hover:bg-red-500/20 text-transparent"
               : "border-zinc-600 hover:border-blue-500 hover:bg-blue-600/10 text-transparent"
           )}
         >
@@ -119,11 +128,31 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) =>
         {/* Conteúdo Central */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
+            {/* Tag de Missão de Emergência do Arquiteto */}
+            {task.gerada_por_ia && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-red-500/25 border border-red-500/70 text-red-200 text-[10px] font-black uppercase tracking-wider shadow-sm shadow-red-500/30 shrink-0">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
+                </span>
+                <span>🔴 MISSÃO DE EMERGÊNCIA</span>
+              </span>
+            )}
+
+            {/* Tag de Penalidade por Falha */}
+            {task.gerada_por_ia && task.penalidade_falha && (
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-red-950/90 border border-red-500/60 text-red-300 text-[10px] font-extrabold uppercase tracking-tight shrink-0 shadow-xs">
+                <AlertTriangle className="w-3.5 h-3.5 text-red-400 shrink-0 animate-bounce" />
+                <span>PENALIDADE: {task.penalidade_falha}</span>
+              </span>
+            )}
+
             {/* Título da Tarefa */}
             <span
               className={cn(
                 "text-sm font-medium transition-all",
-                task.concluida ? "line-through text-zinc-500" : "text-zinc-100"
+                task.gerada_por_ia && !task.concluida && "font-bold text-red-100",
+                task.concluida ? "line-through text-zinc-500" : !task.gerada_por_ia && "text-zinc-100"
               )}
             >
               {task.titulo}
@@ -252,17 +281,27 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) =>
 
         {/* Lado Direito: Ações (Editar, Excluir, Expandir) */}
         <div className="flex items-center gap-1 shrink-0">
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onEdit(task);
-            }}
-            title="Editar tarefa"
-            className="p-1.5 rounded-lg text-zinc-400 hover:text-blue-400 hover:bg-zinc-800 transition-colors"
-          >
-            <Pencil className="w-4 h-4" />
-          </button>
+          {/* Bloqueio de Edição se for gerada por IA (O Arquiteto) */}
+          {task.gerada_por_ia ? (
+            <span
+              title="Missão de Emergência imposta pelo Arquiteto: edição bloqueada pelo sistema."
+              className="p-1.5 rounded-lg text-red-400 bg-red-500/10 border border-red-500/30 flex items-center justify-center cursor-not-allowed"
+            >
+              <Lock className="w-4 h-4" />
+            </span>
+          ) : (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit(task);
+              }}
+              title="Editar tarefa"
+              className="p-1.5 rounded-lg text-zinc-400 hover:text-blue-400 hover:bg-zinc-800 transition-colors"
+            >
+              <Pencil className="w-4 h-4" />
+            </button>
+          )}
 
           <button
             type="button"
@@ -294,6 +333,26 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) =>
       {expanded && (
         <div className="border-t border-zinc-800/80 bg-zinc-950/60 p-4 space-y-4 text-xs animate-in slide-in-from-top-1 duration-150">
           
+          {/* Alerta Especial de Missão de Emergência do Arquiteto */}
+          {task.gerada_por_ia && (
+            <div className="p-3.5 rounded-xl bg-red-950/50 border border-red-500/40 text-xs text-red-200 flex items-start gap-2.5 shadow-sm">
+              <Skull className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <p className="font-extrabold uppercase tracking-wider text-red-300">
+                  Diretriz Suprema • O Arquiteto
+                </p>
+                <p className="text-[11px] text-red-300/90 leading-relaxed">
+                  Esta missão de emergência foi injetada pela IA Autônoma. A edição de parâmetros foi desativada pelo sistema. Conclua a tarefa para evitar penalidades de sobrevivência.
+                </p>
+                {task.penalidade_falha && (
+                  <p className="font-black text-red-200 text-xs bg-red-900/60 p-2 rounded-lg border border-red-600/50 inline-block mt-1">
+                    ⚠️ CONSEQÜÊNCIA DA FALHA: {task.penalidade_falha}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Descrição Detalhada */}
           {task.descricao && (
             <div>

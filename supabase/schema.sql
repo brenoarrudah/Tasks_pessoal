@@ -129,6 +129,8 @@ CREATE TABLE IF NOT EXISTS public.crm_tarefas (
     ocorrencias_realizadas INTEGER NOT NULL DEFAULT 0,
     recompensa_xp INTEGER NOT NULL DEFAULT 10,
     atributo_alvo VARCHAR(10) CHECK (atributo_alvo IS NULL OR atributo_alvo IN ('STR', 'INT', 'SPR', 'CHA', 'PER')),
+    gerada_por_ia BOOLEAN NOT NULL DEFAULT FALSE,
+    penalidade_falha VARCHAR(255),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

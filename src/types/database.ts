@@ -114,6 +114,8 @@ export interface Task {
   id_meta_vinculada?: string | null;
   recompensa_xp?: number;
   atributo_alvo?: AtributoRpg | null;
+  gerada_por_ia?: boolean;
+  penalidade_falha?: string | null;
   created_at: string;
   updated_at: string;
   subtarefas?: Subtask[];

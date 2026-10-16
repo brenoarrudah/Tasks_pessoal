@@ -10,7 +10,9 @@ import {
   RotateCcw,
   Clock,
   Target,
-  Sparkles
+  Sparkles,
+  Lock,
+  AlertTriangle
 } from 'lucide-react';
 import { useTasks, Task } from '@/contexts/TasksContext';
 import { useAreas } from '@/contexts/AreasContext';
@@ -107,6 +109,8 @@ export const TaskModal: React.FC<TaskModalProps> = ({
     setError(null);
   }, [taskToEdit, defaultAreaId, areas, isOpen]);
 
+  const isGeradaPorIa = Boolean(taskToEdit?.gerada_por_ia);
+
   if (!isOpen) return null;
 
   const formatRecurrenceSummary = (rec: RecurrenceConfig): string => {
@@ -143,6 +147,10 @@ export const TaskModal: React.FC<TaskModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isGeradaPorIa) {
+      setError('Missões injetadas pelo Arquiteto estão blindadas contra alterações.');
+      return;
+    }
     if (!titulo.trim()) {
       setError('Informe o título da tarefa.');
       return;
@@ -200,8 +208,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
       }
 
       onClose();
-    } catch (err: unknown) {
-      console.error("Erro Supabase:", err);
+    } catch {
       setError('Falha ao salvar a tarefa. Verifique as informações.');
     } finally {
       setLoading(false);
@@ -235,6 +242,25 @@ export const TaskModal: React.FC<TaskModalProps> = ({
 
           {/* Form Body */}
           <form onSubmit={handleSubmit} className="p-6 space-y-5">
+            {isGeradaPorIa && (
+              <div className="p-3.5 rounded-xl bg-red-950/80 border border-red-500/50 text-red-200 text-xs flex items-start gap-2.5 shadow-lg shadow-red-950/50">
+                <AlertTriangle className="w-4 h-4 text-red-400 shrink-0 mt-0.5 animate-pulse" />
+                <div className="space-y-1">
+                  <div className="font-bold text-red-300 flex items-center gap-1.5 uppercase tracking-wider">
+                    <span>🔴 Missão de Emergência (O Arquiteto)</span>
+                  </div>
+                  <p className="text-zinc-300 leading-relaxed">
+                    Esta diretriz foi injetada diretamente pela IA Autônoma. Título, prazo e área estão blindados contra qualquer alteração.
+                  </p>
+                  {taskToEdit?.penalidade_falha && (
+                    <p className="font-mono font-bold text-red-400">
+                      PENALIDADE POR FALHA: {taskToEdit.penalidade_falha}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
             {error && (
               <div className="p-3 rounded-xl bg-red-950/60 border border-red-900/50 text-red-300 text-sm">
                 {error}
@@ -243,16 +269,25 @@ export const TaskModal: React.FC<TaskModalProps> = ({
 
             {/* Título */}
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300 mb-1.5">
-                Título da Tarefa *
+              <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300 mb-1.5 flex items-center justify-between">
+                <span>Título da Tarefa *</span>
+                {isGeradaPorIa && (
+                  <span className="text-[10px] text-red-400 font-mono flex items-center gap-1">
+                    <Lock className="w-3 h-3" /> Bloqueado
+                  </span>
+                )}
               </label>
               <input
                 type="text"
                 required
+                disabled={isGeradaPorIa}
                 value={titulo}
                 onChange={(e) => setTitulo(e.target.value)}
                 placeholder="O que precisa ser feito?"
-                className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-zinc-100 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors placeholder:text-zinc-600"
+                className={cn(
+                  "w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-zinc-100 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors placeholder:text-zinc-600",
+                  isGeradaPorIa && "opacity-60 cursor-not-allowed bg-zinc-900 border-red-900/40 focus:border-red-900/40 focus:ring-0"
+                )}
               />
             </div>
 
@@ -263,10 +298,14 @@ export const TaskModal: React.FC<TaskModalProps> = ({
               </label>
               <textarea
                 rows={3}
+                disabled={isGeradaPorIa}
                 value={descricao}
                 onChange={(e) => setDescricao(e.target.value)}
                 placeholder="Adicione detalhes, observações ou links úteis..."
-                className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-zinc-100 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors placeholder:text-zinc-600 resize-none"
+                className={cn(
+                  "w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-zinc-100 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors placeholder:text-zinc-600 resize-none",
+                  isGeradaPorIa && "opacity-60 cursor-not-allowed bg-zinc-900 border-red-900/40 focus:border-red-900/40 focus:ring-0"
+                )}
               />
             </div>
 
@@ -275,14 +314,25 @@ export const TaskModal: React.FC<TaskModalProps> = ({
               
               {/* Área de Foco */}
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300 mb-1.5 flex items-center gap-1.5">
-                  <Layers className="w-3.5 h-3.5 text-zinc-400" />
-                  Área de Foco
+                <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300 mb-1.5 flex items-center justify-between">
+                  <span className="flex items-center gap-1.5">
+                    <Layers className="w-3.5 h-3.5 text-zinc-400" />
+                    Área de Foco
+                  </span>
+                  {isGeradaPorIa && (
+                    <span className="text-[10px] text-red-400 font-mono flex items-center gap-1">
+                      <Lock className="w-3 h-3" /> Bloqueado
+                    </span>
+                  )}
                 </label>
                 <select
+                  disabled={isGeradaPorIa}
                   value={idArea}
                   onChange={(e) => setIdArea(e.target.value)}
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-zinc-100 text-sm focus:outline-none focus:border-blue-500 transition-colors cursor-pointer"
+                  className={cn(
+                    "w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-zinc-100 text-sm focus:outline-none focus:border-blue-500 transition-colors cursor-pointer",
+                    isGeradaPorIa && "opacity-60 cursor-not-allowed bg-zinc-900 border-red-900/40"
+                  )}
                 >
                   <option value="">Sem Área (Geral)</option>
                   {areas.map((a) => (
@@ -368,13 +418,15 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   <div className="sm:col-span-2">
                     <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-                      <PopoverTrigger asChild>
+                      <PopoverTrigger asChild disabled={isGeradaPorIa}>
                         <button
                           type="button"
+                          disabled={isGeradaPorIa}
                           className={cn(
                             "w-full flex items-center justify-between bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm transition-all text-left cursor-pointer",
                             "hover:border-zinc-700 focus:outline-hidden focus:border-blue-500 focus:ring-1 focus:ring-blue-500",
-                            !selectedDate && "text-zinc-500"
+                            !selectedDate && "text-zinc-500",
+                            isGeradaPorIa && "opacity-60 cursor-not-allowed bg-zinc-900 border-red-900/40 hover:border-red-900/40"
                           )}
                         >
                           <div className="flex items-center gap-2.5 min-w-0">
@@ -386,7 +438,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                             </span>
                           </div>
 
-                          {selectedDate && (
+                          {selectedDate && !isGeradaPorIa && (
                             <span
                               role="button"
                               tabIndex={0}
@@ -419,16 +471,20 @@ export const TaskModal: React.FC<TaskModalProps> = ({
 
                   {/* Input de Horário Opcional */}
                   <div className="relative">
-                    <div className="flex items-center bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-sm hover:border-zinc-700 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-colors h-full">
+                    <div className={cn(
+                      "flex items-center bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-sm hover:border-zinc-700 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-colors h-full",
+                      isGeradaPorIa && "opacity-60 cursor-not-allowed bg-zinc-900 border-red-900/40"
+                    )}>
                       <Clock className="w-4 h-4 text-zinc-400 shrink-0 mr-2" />
                       <input
                         type="time"
+                        disabled={isGeradaPorIa}
                         value={horario}
                         onChange={(e) => setHorario(e.target.value)}
                         title="Definir horário (opcional)"
-                        className="w-full bg-transparent text-zinc-100 text-sm focus:outline-hidden [color-scheme:dark] cursor-pointer"
+                        className="w-full bg-transparent text-zinc-100 text-sm focus:outline-hidden [color-scheme:dark] cursor-pointer disabled:cursor-not-allowed"
                       />
-                      {horario && (
+                      {horario && !isGeradaPorIa && (
                         <button
                           type="button"
                           onClick={() => setHorario('')}
@@ -448,8 +504,12 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                 {!recurrence.recorrente ? (
                   <button
                     type="button"
+                    disabled={isGeradaPorIa}
                     onClick={() => setIsRecurrenceModalOpen(true)}
-                    className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-zinc-950 border border-zinc-800 hover:border-zinc-700 text-zinc-300 hover:text-zinc-100 text-xs font-medium transition-all cursor-pointer"
+                    className={cn(
+                      "flex items-center gap-2 px-3.5 py-2 rounded-xl bg-zinc-950 border border-zinc-800 hover:border-zinc-700 text-zinc-300 hover:text-zinc-100 text-xs font-medium transition-all cursor-pointer",
+                      isGeradaPorIa && "opacity-50 cursor-not-allowed pointer-events-none"
+                    )}
                   >
                     <RotateCcw className="w-3.5 h-3.5 text-blue-400" />
                     <span>Repetir (Personalizado)</span>
@@ -458,22 +518,28 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                   <div className="flex items-center justify-between p-3 rounded-xl bg-blue-600/10 border border-blue-500/20 text-xs">
                     <button
                       type="button"
+                      disabled={isGeradaPorIa}
                       onClick={() => setIsRecurrenceModalOpen(true)}
-                      className="flex items-center gap-2 text-blue-300 hover:text-blue-200 transition-colors cursor-pointer text-left"
+                      className={cn(
+                        "flex items-center gap-2 text-blue-300 hover:text-blue-200 transition-colors cursor-pointer text-left",
+                        isGeradaPorIa && "cursor-not-allowed"
+                      )}
                     >
                       <RotateCcw className="w-4 h-4 text-blue-400 shrink-0" />
                       <span className="font-medium">
                         {formatRecurrenceSummary(recurrence)}
                       </span>
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => setRecurrence(defaultRecurrence)}
-                      title="Remover repetição"
-                      className="p-1 rounded-lg text-zinc-400 hover:text-red-400 hover:bg-zinc-800/80 transition-colors cursor-pointer"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
+                    {!isGeradaPorIa && (
+                      <button
+                        type="button"
+                        onClick={() => setRecurrence(defaultRecurrence)}
+                        title="Remover repetição"
+                        className="p-1 rounded-lg text-zinc-400 hover:text-red-400 hover:bg-zinc-800/80 transition-colors cursor-pointer"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
@@ -487,23 +553,35 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                 disabled={loading}
                 className="px-4 py-2.5 rounded-xl text-sm font-medium text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 transition-colors cursor-pointer"
               >
-                Cancelar
+                {isGeradaPorIa ? 'Fechar' : 'Cancelar'}
               </button>
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="px-5 py-2.5 rounded-xl text-sm font-medium bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-600/20 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Salvando...</span>
-                  </>
-                ) : (
-                  <span>{taskToEdit ? 'Atualizar Tarefa' : 'Criar Tarefa'}</span>
-                )}
-              </button>
+              {isGeradaPorIa ? (
+                <button
+                  type="button"
+                  disabled
+                  title="Missões injetadas pelo Arquiteto não podem ser editadas."
+                  className="px-5 py-2.5 rounded-xl text-sm font-medium bg-red-950/40 border border-red-500/40 text-red-300 flex items-center gap-2 cursor-not-allowed"
+                >
+                  <Lock className="w-4 h-4 text-red-400" />
+                  <span>Edição Bloqueada</span>
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="px-5 py-2.5 rounded-xl text-sm font-medium bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-600/20 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Salvando...</span>
+                    </>
+                  ) : (
+                    <span>{taskToEdit ? 'Atualizar Tarefa' : 'Criar Tarefa'}</span>
+                  )}
+                </button>
+              )}
             </div>
 
           </form>
