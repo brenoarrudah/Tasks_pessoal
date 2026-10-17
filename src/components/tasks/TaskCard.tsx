@@ -96,29 +96,34 @@ export const TaskCard: React.FC<TaskCardProps> = ({
       {/* Linha Principal da Tarefa */}
       <div 
         onClick={() => setExpanded(!expanded)}
-        className="p-3.5 flex items-start gap-3 cursor-pointer select-none"
+        className="p-3 sm:p-3.5 flex items-start gap-2.5 sm:gap-3 cursor-pointer select-none"
       >
-        {/* Custom Checkbox Inspirado no Google Tasks com Animação de Escala */}
-        <button
-          type="button"
+        {/* Custom Checkbox com Touch Target Expandido (40x40px) para Mobile */}
+        <div 
           onClick={handleToggleComplete}
-          className={cn(
-            "w-5 h-5 rounded-full border flex items-center justify-center transition-all duration-200 mt-0.5 shrink-0 cursor-pointer",
-            "hover:scale-110 active:scale-90",
-            task.concluida
-              ? "bg-blue-600 border-blue-600 text-white shadow-xs"
-              : task.gerada_por_ia
-              ? "border-red-500 hover:border-red-400 hover:bg-red-500/20 text-transparent"
-              : "border-zinc-600 hover:border-blue-500 hover:bg-blue-600/10 text-transparent"
-          )}
+          className="-m-2 p-2 sm:-m-2.5 sm:p-2.5 flex items-center justify-center shrink-0 cursor-pointer"
+          title={task.concluida ? "Marcar como pendente" : "Concluir tarefa"}
         >
-          <Check className="w-3.5 h-3.5 stroke-[3]" />
-        </button>
+          <button
+            type="button"
+            className={cn(
+              "w-5 h-5 rounded-full border flex items-center justify-center transition-all duration-200 pointer-events-none",
+              "hover:scale-110 active:scale-90",
+              task.concluida
+                ? "bg-blue-600 border-blue-600 text-white shadow-xs"
+                : task.gerada_por_ia
+                ? "border-red-500 hover:border-red-400 hover:bg-red-500/20 text-transparent"
+                : "border-zinc-600 hover:border-blue-500 hover:bg-blue-600/10 text-transparent"
+            )}
+          >
+            <Check className="w-3.5 h-3.5 stroke-[3]" />
+          </button>
+        </div>
 
         {/* Conteúdo Central */}
-        <div className="flex-1 min-w-0 space-y-1.5">
+        <div className="flex-1 min-w-0 space-y-1 sm:space-y-1.5">
           {/* Linha 1: Título e Status de Emergência/Prioridade */}
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
             {/* Tag de Missão de Emergência do Arquiteto */}
             {task.gerada_por_ia && (
               <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-red-500/25 border border-red-500/70 text-red-200 text-[10px] font-black uppercase tracking-wider shadow-sm shadow-red-500/30 shrink-0">
@@ -141,7 +146,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
             {/* Título da Tarefa */}
             <span
               className={cn(
-                "text-sm font-semibold transition-all",
+                "text-sm font-semibold transition-all break-words",
                 task.gerada_por_ia && !task.concluida && "font-bold text-red-100",
                 task.concluida ? "line-through text-zinc-500 font-normal" : !task.gerada_por_ia && "text-zinc-100"
               )}
@@ -165,7 +170,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           </div>
 
           {/* Linha 2: Badges Contextuais e Metadados (Prazo, Atributo, Área, Meta, Subtarefas) */}
-          <div className="flex items-center gap-2 text-xs text-zinc-400 flex-wrap">
+          <div className="flex items-center gap-1.5 sm:gap-2 text-xs text-zinc-400 flex-wrap">
             {/* Prazo e Horário */}
             {formattedPrazo && (
               <span className="flex items-center gap-1 text-[11px] text-blue-400 font-medium bg-blue-500/10 px-2 py-0.5 rounded-md border border-blue-500/20 shrink-0">
@@ -214,7 +219,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
               <span 
                 title={`Atributo RPG: +1 ponto em ${task.atributo_alvo}`}
                 className={cn(
-                  "text-[10px] font-bold px-2 py-0.5 rounded-md border flex items-center gap-1 shrink-0 font-mono",
+                  "text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded-md border flex items-center gap-1 shrink-0 font-mono",
                   task.atributo_alvo === 'STR' && "bg-red-500/10 text-red-300 border-red-500/20",
                   task.atributo_alvo === 'INT' && "bg-blue-500/10 text-blue-300 border-blue-500/20",
                   task.atributo_alvo === 'SPR' && "bg-amber-500/10 text-amber-300 border-amber-500/20",
@@ -239,7 +244,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                 className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-emerald-950/60 border border-emerald-800/60 text-emerald-300 flex items-center gap-1 shrink-0"
               >
                 <Target className="w-3 h-3 text-emerald-400 shrink-0" />
-                <span className="truncate max-w-[120px]">{linkedMeta.titulo}</span>
+                <span className="truncate max-w-[90px] sm:max-w-[120px]">{linkedMeta.titulo}</span>
                 <span className="text-[9px] text-emerald-400/90 font-mono font-semibold">
                   ({linkedMeta.progresso_atual}/{linkedMeta.progresso_alvo})
                 </span>
@@ -270,21 +275,21 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 
             {/* Preview de Descrição quando colapsado */}
             {task.descricao && !expanded && (
-              <span className="text-zinc-500 truncate max-w-[180px] text-[11px]">
+              <span className="text-zinc-500 truncate max-w-[120px] sm:max-w-[180px] text-[11px]">
                 {task.descricao}
               </span>
             )}
           </div>
         </div>
 
-        {/* Lado Direito: Ações (Editar, Excluir, Expandir) */}
-        <div className="flex items-center gap-0.5 shrink-0">
-          <div className="flex items-center gap-0.5 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+        {/* Lado Direito: Ações (Editar, Excluir, Expandir) com Touch Targets de 36px+ */}
+        <div className="flex items-center gap-1 sm:gap-0.5 shrink-0">
+          <div className="flex items-center gap-1 sm:gap-0.5 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity duration-150">
             {/* Bloqueio de Edição se for gerada por IA (O Arquiteto) */}
             {task.gerada_por_ia ? (
               <span
                 title="Missão de Emergência imposta pelo Arquiteto: edição bloqueada pelo sistema."
-                className="p-1.5 rounded-lg text-red-400 bg-red-500/10 border border-red-500/30 flex items-center justify-center cursor-not-allowed"
+                className="p-2 sm:p-1.5 rounded-lg text-red-400 bg-red-500/10 border border-red-500/30 flex items-center justify-center cursor-not-allowed min-h-[36px] min-w-[36px]"
               >
                 <Lock className="w-3.5 h-3.5" />
               </span>
@@ -296,7 +301,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                   onEdit(task);
                 }}
                 title="Editar tarefa"
-                className="p-1.5 rounded-lg text-zinc-400 hover:text-blue-400 hover:bg-zinc-800 transition-colors cursor-pointer"
+                className="p-2 sm:p-1.5 rounded-lg text-zinc-400 hover:text-blue-400 hover:bg-zinc-800 transition-colors cursor-pointer min-h-[36px] min-w-[36px] flex items-center justify-center"
               >
                 <Pencil className="w-3.5 h-3.5" />
               </button>
@@ -309,7 +314,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                 onDelete(task);
               }}
               title="Excluir tarefa"
-              className="p-1.5 rounded-lg text-zinc-400 hover:text-red-400 hover:bg-zinc-800 transition-colors cursor-pointer"
+              className="p-2 sm:p-1.5 rounded-lg text-zinc-400 hover:text-red-400 hover:bg-zinc-800 transition-colors cursor-pointer min-h-[36px] min-w-[36px] flex items-center justify-center"
             >
               <Trash2 className="w-3.5 h-3.5" />
             </button>
@@ -322,7 +327,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
               setExpanded(!expanded);
             }}
             title={expanded ? 'Recolher detalhes' : 'Expandir detalhes'}
-            className="p-1.5 rounded-lg text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800 transition-colors cursor-pointer"
+            className="p-2 sm:p-1.5 rounded-lg text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800 transition-colors cursor-pointer min-h-[36px] min-w-[36px] flex items-center justify-center"
           >
             {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
           </button>

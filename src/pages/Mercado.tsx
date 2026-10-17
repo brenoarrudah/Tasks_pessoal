@@ -165,47 +165,47 @@ export const Mercado: React.FC = () => {
       </div>
 
       {/* Banner de Saldo e Informações do Jogador */}
-      <div className="bg-gradient-to-r from-amber-950/40 via-zinc-900 to-zinc-950 border border-amber-500/20 rounded-3xl p-6 shadow-xl relative overflow-hidden">
+      <div className="bg-gradient-to-r from-amber-950/40 via-zinc-900 to-zinc-950 border border-amber-500/20 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xl relative overflow-hidden">
         <div className="absolute -top-12 -right-12 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 relative z-10">
-          <div className="space-y-1.5">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6 relative z-10">
+          <div className="space-y-1 sm:space-y-1.5">
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-semibold">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-semibold">
                 <Sparkles className="w-3.5 h-3.5" />
                 Economia Virtual RPG
               </span>
             </div>
-            <h2 className="text-lg font-bold text-zinc-100">
+            <h2 className="text-base sm:text-lg font-bold text-zinc-100">
               Seu Saldo & Nível de Herói
             </h2>
-            <p className="text-xs text-zinc-400 max-w-md">
+            <p className="text-xs text-zinc-400 max-w-md hidden sm:block">
               Complete tarefas de alta prioridade para ganhar até +20 Gold e desbloquear itens de tiers lendários.
             </p>
           </div>
 
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="grid grid-cols-2 gap-2 sm:gap-3 w-full sm:w-auto shrink-0">
             {/* Status do Nível Atual */}
-            <div className="flex items-center gap-3.5 bg-zinc-950/80 border border-indigo-500/30 rounded-2xl p-4 px-5 shadow-inner">
-              <div className="text-2xl">⚔️</div>
+            <div className="flex items-center gap-2.5 sm:gap-3.5 bg-zinc-950/80 border border-indigo-500/30 rounded-2xl p-3 sm:p-4 px-3.5 sm:px-5 shadow-inner">
+              <div className="text-xl sm:text-2xl">⚔️</div>
               <div>
-                <p className="text-2xl font-black text-indigo-300 font-mono tracking-tight">
+                <p className="text-xl sm:text-2xl font-black text-indigo-300 font-mono tracking-tight">
                   Nv. {nivelAtual}
                 </p>
-                <p className="text-[11px] uppercase tracking-wider font-bold text-indigo-400/80">
+                <p className="text-[9px] sm:text-[11px] uppercase tracking-wider font-bold text-indigo-400/80">
                   Nível do Herói
                 </p>
               </div>
             </div>
 
             {/* Status do Gold */}
-            <div className="flex items-center gap-3.5 bg-zinc-950/80 border border-amber-500/30 rounded-2xl p-4 px-5 shadow-inner">
-              <div className="text-2xl">🪙</div>
+            <div className="flex items-center gap-2.5 sm:gap-3.5 bg-zinc-950/80 border border-amber-500/30 rounded-2xl p-3 sm:p-4 px-3.5 sm:px-5 shadow-inner">
+              <div className="text-xl sm:text-2xl">🪙</div>
               <div>
-                <p className="text-2xl font-black text-amber-300 font-mono tracking-tight">
+                <p className="text-xl sm:text-2xl font-black text-amber-300 font-mono tracking-tight">
                   {goldAtual}
                 </p>
-                <p className="text-[11px] uppercase tracking-wider font-bold text-amber-400/80">
+                <p className="text-[9px] sm:text-[11px] uppercase tracking-wider font-bold text-amber-400/80">
                   Gold Acumulado
                 </p>
               </div>
@@ -215,29 +215,29 @@ export const Mercado: React.FC = () => {
       </div>
 
       {/* Item do Sistema: A Taverna (Cura Completa) */}
-      <div className="bg-gradient-to-r from-indigo-950/40 via-zinc-900 to-zinc-950 border border-indigo-500/25 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-xl bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-300 shrink-0">
-            <Bed className="w-6 h-6" />
+      <div className="bg-gradient-to-r from-indigo-950/40 via-zinc-900 to-zinc-950 border border-indigo-500/25 rounded-2xl p-3.5 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+        <div className="flex items-center gap-3 sm:gap-3.5">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-300 shrink-0">
+            <Bed className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h3 className="text-sm font-bold text-zinc-100">
-                A Taverna • Cura Completa (Descansar)
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="text-xs sm:text-sm font-bold text-zinc-100">
+                A Taverna • Cura Completa
               </h3>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
-                Item de Sistema
+              <span className="text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
+                Sistema
               </span>
             </div>
-            <p className="text-xs text-zinc-400 mt-0.5">
-              Restaura imediatamente 100% de HP e MP para você continuar produtivo.
+            <p className="text-[11px] sm:text-xs text-zinc-400 mt-0.5">
+              Restaura imediatamente 100% de HP e MP.
             </p>
           </div>
         </div>
 
         <button
           onClick={() => descansarCompleto()}
-          className="bg-indigo-600/80 hover:bg-indigo-600 active:bg-indigo-700 text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition-all cursor-pointer shadow-md shadow-indigo-600/20 shrink-0 flex items-center justify-center gap-2"
+          className="w-full sm:w-auto bg-indigo-600/80 hover:bg-indigo-600 active:bg-indigo-700 text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition-all cursor-pointer shadow-md shadow-indigo-600/20 shrink-0 flex items-center justify-center gap-2 min-h-[42px]"
         >
           <Bed className="w-4 h-4" />
           <span>Descansar Agora (Grátis)</span>
@@ -254,7 +254,7 @@ export const Mercado: React.FC = () => {
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
             {[1, 2, 3].map((n) => (
               <div
                 key={n}
@@ -263,7 +263,7 @@ export const Mercado: React.FC = () => {
             ))}
           </div>
         ) : recompensas.length === 0 ? (
-          <div className="bg-zinc-900/40 border border-zinc-800/80 rounded-2xl p-8 text-center flex flex-col items-center justify-center">
+          <div className="bg-zinc-900/40 border border-zinc-800/80 rounded-2xl p-6 sm:p-8 text-center flex flex-col items-center justify-center">
             <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 mb-3">
               <Gift className="w-6 h-6" />
             </div>
@@ -275,13 +275,13 @@ export const Mercado: React.FC = () => {
             </p>
             <button
               onClick={handleOpenModal}
-              className="bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold px-4 py-2 rounded-xl text-xs transition-all cursor-pointer"
+              className="bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold px-4 py-2.5 rounded-xl text-xs transition-all cursor-pointer min-h-[40px]"
             >
               + Adicionar Primeira Recompensa
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
             {recompensas.map((rec) => {
               const IconComponent = (rec.icone && ICON_MAP[rec.icone]) || Gift;
               const tierKey = (rec.tier || 'comum').toLowerCase();
@@ -316,16 +316,16 @@ export const Mercado: React.FC = () => {
                 <div
                   key={rec.id}
                   className={cn(
-                    "group relative overflow-hidden rounded-2xl border bg-gradient-to-b from-zinc-900/90 to-zinc-950 p-5 shadow-lg transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between",
+                    "group relative overflow-hidden rounded-2xl border bg-gradient-to-b from-zinc-900/90 to-zinc-950 p-4 sm:p-5 shadow-lg transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between",
                     tier.cardBorder
                   )}
                 >
-                  <div className="space-y-3.5">
+                  <div className="space-y-3">
                     {/* Topo do Card: Badge de Tier estilizado e Requisito de Nível / Ação */}
-                    <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center justify-between gap-1.5 flex-wrap">
                       <span
                         className={cn(
-                          "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border",
+                          "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border shrink-0",
                           tier.badgeClass
                         )}
                       >
@@ -333,25 +333,25 @@ export const Mercado: React.FC = () => {
                         {tier.label}
                       </span>
 
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5 shrink-0">
                         {/* Se nivel_minimo > 1, exibe claramente o requisito */}
                         {nivelMinimo > 1 && (
                           <span
                             className={cn(
-                              "inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold border",
+                              "inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-md text-[10px] sm:text-[11px] font-bold border",
                               nivelBloqueado
                                 ? "bg-red-500/10 text-red-400 border-red-500/30"
                                 : "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
                             )}
                             title={nivelBloqueado ? `Requer nível ${nivelMinimo} (Seu nível: ${nivelAtual})` : `Nível ${nivelMinimo} alcançado!`}
                           >
-                            <span>🔒 Requer Nível {nivelMinimo}</span>
+                            <span>🔒 Requer Nv. {nivelMinimo}</span>
                           </span>
                         )}
 
                         <button
                           onClick={() => deleteRecompensa(rec.id)}
-                          className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-red-500/10 transition-all cursor-pointer"
+                          className="opacity-100 sm:opacity-0 group-hover:opacity-100 p-2 sm:p-1.5 rounded-lg text-zinc-400 hover:text-red-400 hover:bg-red-500/10 transition-all cursor-pointer min-h-[36px] min-w-[36px] flex items-center justify-center"
                           title="Remover recompensa"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -360,23 +360,23 @@ export const Mercado: React.FC = () => {
                     </div>
 
                     {/* Bloco Central: Ícone e Título com Preço em Gold */}
-                    <div className="flex items-start gap-3.5">
+                    <div className="flex items-start gap-3 sm:gap-3.5">
                       <div
                         className={cn(
-                          "p-3 rounded-xl border shadow-sm shrink-0",
+                          "p-2.5 sm:p-3 rounded-xl border shadow-sm shrink-0",
                           tier.iconBg
                         )}
                       >
-                        <IconComponent className="w-6 h-6" />
+                        <IconComponent className="w-5 h-5 sm:w-6 sm:h-6" />
                       </div>
 
-                      <div className="min-w-0">
-                        <h3 className="text-base font-bold text-zinc-100 group-hover:text-amber-200 transition-colors leading-snug">
+                      <div className="min-w-0 flex-1">
+                        <h3 className="text-sm sm:text-base font-bold text-zinc-100 group-hover:text-amber-200 transition-colors leading-snug break-words">
                           {rec.titulo}
                         </h3>
-                        <div className="flex items-center gap-1.5 mt-1.5">
-                          <span className="text-sm">🪙</span>
-                          <span className="text-sm font-extrabold text-amber-300 font-mono">
+                        <div className="flex items-center gap-1.5 mt-1">
+                          <span className="text-xs sm:text-sm">🪙</span>
+                          <span className="text-xs sm:text-sm font-extrabold text-amber-300 font-mono">
                             {rec.custo_gold} Gold
                           </span>
                         </div>
@@ -384,13 +384,13 @@ export const Mercado: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Rodapé: Botão de Compra com Trava por Nível e Gold */}
-                  <div className="pt-4 mt-3 border-t border-zinc-800/80">
+                  {/* Rodapé: Botão de Compra com Trava por Nível e Gold e Touch Target de 44px */}
+                  <div className="pt-3 sm:pt-4 mt-3 border-t border-zinc-800/80">
                     <button
                       onClick={() => handleComprar(rec)}
                       disabled={botaoDisabled}
                       className={cn(
-                        "w-full py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md",
+                        "w-full min-h-[44px] py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md",
                         botaoClasses
                       )}
                     >

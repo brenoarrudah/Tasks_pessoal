@@ -115,10 +115,10 @@ export const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-200 pb-16">
+    <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-200 pb-16">
       
       {/* Header da Página */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-800/80 pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 border-b border-zinc-800/80 pb-3 sm:pb-4">
         <div>
           <div className="flex items-center gap-2.5">
             <div className="p-2 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20 shadow-sm">
@@ -148,15 +148,15 @@ export const Dashboard: React.FC = () => {
       <PlayerStatusCard />
 
       {/* Widget do Dashboard / Banner Principal */}
-      <div className="bg-gradient-to-r from-zinc-900 via-zinc-900/90 to-zinc-950 border border-zinc-800 rounded-2xl p-4 sm:p-5 shadow-lg relative overflow-hidden">
+      <div className="bg-gradient-to-r from-zinc-900 via-zinc-900/90 to-zinc-950 border border-zinc-800 rounded-2xl p-3.5 sm:p-5 shadow-lg relative overflow-hidden">
         {/* Glow de fundo */}
         <div className="absolute -top-12 -right-12 w-48 h-48 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-12 -left-12 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6 relative z-10">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3.5 sm:gap-6 relative z-10">
           
           {/* Lado Esquerdo: Frase & Contador */}
-          <div className="space-y-1.5">
+          <div className="space-y-1 sm:space-y-1.5">
             <div className="flex items-center gap-2">
               {pendingCount === 0 ? (
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold">
@@ -173,24 +173,24 @@ export const Dashboard: React.FC = () => {
 
             {pendingCount === 0 ? (
               <div>
-                <h2 className="text-xl sm:text-2xl font-bold text-zinc-100 tracking-tight">
+                <h2 className="text-lg sm:text-2xl font-bold text-zinc-100 tracking-tight">
                   Todas as tarefas de hoje foram concluídas! 🎉
                 </h2>
-                <p className="text-xs text-zinc-400 mt-1">
+                <p className="text-xs text-zinc-400 mt-0.5 sm:mt-1">
                   Excelente constância, Caçador. Todo o XP, Gold e Atributos foram creditados no seu perfil.
                 </p>
               </div>
             ) : (
               <div>
-                <div className="flex items-baseline gap-2.5">
-                  <span className="text-3xl sm:text-4xl font-extrabold text-zinc-100 tracking-tight">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-2xl sm:text-4xl font-extrabold text-zinc-100 tracking-tight">
                     {pendingCount}
                   </span>
-                  <span className="text-sm sm:text-base font-medium text-zinc-400">
+                  <span className="text-xs sm:text-base font-medium text-zinc-400">
                     {pendingCount === 1 ? 'tarefa pendente hoje' : 'tarefas pendentes hoje'}
                   </span>
                 </div>
-                <p className="text-xs text-zinc-400 mt-0.5">
+                <p className="hidden sm:block text-xs text-zinc-400 mt-0.5">
                   Suas tarefas do dia estão centralizadas abaixo. Conclua-as para acumular recompensas.
                 </p>
               </div>
@@ -198,21 +198,21 @@ export const Dashboard: React.FC = () => {
           </div>
 
           {/* Lado Direito: Barra de Progresso do Dia */}
-          <div className="bg-zinc-950/80 border border-zinc-800/80 rounded-xl p-3.5 md:w-60 space-y-2 shrink-0">
+          <div className="bg-zinc-950/80 border border-zinc-800/80 rounded-xl p-2.5 sm:p-3.5 md:w-60 space-y-1.5 sm:space-y-2 shrink-0">
             <div className="flex items-center justify-between text-xs">
               <span className="font-semibold text-zinc-300">Progresso do Dia</span>
               <span className="font-bold text-blue-400">{completionPercentage}%</span>
             </div>
 
             {/* Progress bar */}
-            <div className="w-full bg-zinc-900 rounded-full h-2 overflow-hidden border border-zinc-800">
+            <div className="w-full bg-zinc-900 rounded-full h-1.5 sm:h-2 overflow-hidden border border-zinc-800">
               <div 
                 className="bg-gradient-to-r from-blue-600 to-blue-400 h-full rounded-full transition-all duration-500 shadow-sm"
                 style={{ width: `${completionPercentage}%` }}
               />
             </div>
 
-            <div className="flex items-center justify-between text-[11px] text-zinc-500">
+            <div className="flex items-center justify-between text-[10px] sm:text-[11px] text-zinc-500">
               <span>{completedTodayCount} concluídas</span>
               <span>{totalTodayCount} no total</span>
             </div>
