@@ -82,6 +82,8 @@ CREATE TABLE IF NOT EXISTS public.loja_recompensas (
     titulo VARCHAR(255) NOT NULL,
     custo_gold INTEGER NOT NULL DEFAULT 10,
     icone VARCHAR(50) DEFAULT 'gift',
+    tier VARCHAR(50) NOT NULL DEFAULT 'comum',
+    nivel_minimo INTEGER NOT NULL DEFAULT 1,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 

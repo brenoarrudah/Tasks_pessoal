@@ -16,6 +16,8 @@ interface LojaContextType {
     titulo: string;
     custo_gold: number;
     icone?: string | null;
+    tier?: string;
+    nivel_minimo?: number;
   }) => Promise<LojaRecompensa | null>;
   deleteRecompensa: (id: string) => Promise<boolean>;
   comprarRecompensa: (recompensa: LojaRecompensa) => Promise<boolean>;
@@ -25,16 +27,16 @@ const LojaContext = createContext<LojaContextType | undefined>(undefined);
 
 // Itens iniciais padrão sugeridos caso o usuário ainda não tenha cadastrado nenhum
 const ITENS_PADRAO = [
-  { titulo: '1h de Videojogo', custo_gold: 30, icone: 'gamepad' },
-  { titulo: 'Assistir 1 Episódio de Série', custo_gold: 20, icone: 'tv' },
-  { titulo: 'Café Especial & Lanche', custo_gold: 15, icone: 'coffee' },
-  { titulo: 'Noite da Pizza', custo_gold: 80, icone: 'pizza' },
-  { titulo: 'Comprar um Livro Novo', custo_gold: 120, icone: 'book' },
+  { titulo: '1h de Videojogo', custo_gold: 30, icone: 'gamepad', tier: 'comum', nivel_minimo: 1 },
+  { titulo: 'Assistir 1 Episódio de Série', custo_gold: 20, icone: 'tv', tier: 'comum', nivel_minimo: 1 },
+  { titulo: 'Café Especial & Lanche', custo_gold: 15, icone: 'coffee', tier: 'comum', nivel_minimo: 1 },
+  { titulo: 'Noite da Pizza', custo_gold: 80, icone: 'pizza', tier: 'raro', nivel_minimo: 2 },
+  { titulo: 'Comprar um Livro Novo', custo_gold: 120, icone: 'book', tier: 'epico', nivel_minimo: 3 },
 ];
 
 export const LojaProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
-  const { comprarItemGold } = useGamificacao();
+  const { perfil, comprarItemGold } = useGamificacao();
   const [recompensas, setRecompensas] = useState<LojaRecompensa[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [toastFeedback, setToastFeedback] = useState<{ tipo: 'sucesso' | 'erro'; mensagem: string } | null>(null);
@@ -65,6 +67,8 @@ export const LojaProvider: React.FC<{ children: React.ReactNode }> = ({ children
           titulo: item.titulo,
           custo_gold: item.custo_gold,
           icone: item.icone,
+          tier: item.tier,
+          nivel_minimo: item.nivel_minimo,
         }));
 
         const { data: seeded, error: seedErr } = await supabase
@@ -94,6 +98,8 @@ export const LojaProvider: React.FC<{ children: React.ReactNode }> = ({ children
     titulo: string;
     custo_gold: number;
     icone?: string | null;
+    tier?: string;
+    nivel_minimo?: number;
   }): Promise<LojaRecompensa | null> => {
     if (!user) return null;
 
@@ -105,6 +111,8 @@ export const LojaProvider: React.FC<{ children: React.ReactNode }> = ({ children
           titulo: data.titulo,
           custo_gold: Math.max(1, data.custo_gold),
           icone: data.icone || 'gift',
+          tier: data.tier || 'comum',
+          nivel_minimo: Math.max(1, data.nivel_minimo ?? 1),
         })
         .select()
         .single();
@@ -140,13 +148,25 @@ export const LojaProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const comprarRecompensa = async (recompensa: LojaRecompensa): Promise<boolean> => {
+    const nivelAtual = perfil?.nivel_atual ?? 1;
+    const nivelMinimo = recompensa.nivel_minimo ?? 1;
+
+    if (nivelAtual < nivelMinimo) {
+      setToastFeedback({
+        tipo: 'erro',
+        mensagem: `Nível insuficiente! Requer Nível ${nivelMinimo}.`,
+      });
+      setTimeout(() => setToastFeedback(null), 5000);
+      return false;
+    }
+
     const res = await comprarItemGold(recompensa.custo_gold);
 
     if (res.sucesso) {
       dispararConfetes();
       setToastFeedback({
         tipo: 'sucesso',
-        mensagem: 'Recompensa Comprada! Aproveite o seu prémio.',
+        mensagem: 'Recompensa Comprada! Aproveite o seu prêmio.',
       });
       setTimeout(() => setToastFeedback(null), 5000);
       return true;

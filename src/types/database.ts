@@ -56,6 +56,8 @@ export interface PerfilTituloDesbloqueado {
   titulo_info?: ConquistaTitulo;
 }
 
+export type RecompensaTier = 'comum' | 'raro' | 'epico' | 'lendario';
+
 /**
  * Recompensa da Loja / Mercado
  */
@@ -65,6 +67,8 @@ export interface LojaRecompensa {
   titulo: string;
   custo_gold: number;
   icone?: string | null;
+  tier?: RecompensaTier | string;
+  nivel_minimo?: number;
   created_at?: string;
 }
 

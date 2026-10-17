@@ -15,12 +15,12 @@ import {
   Film, 
   Bed, 
   X,
-  CheckCircle2,
-  AlertCircle
+  Lock,
+  ShieldAlert
 } from 'lucide-react';
 import { useLoja } from '@/contexts/LojaContext';
 import { useGamificacao } from '@/contexts/GamificacaoContext';
-import { LojaRecompensa } from '@/types';
+import { LojaRecompensa, RecompensaTier } from '@/types';
 import { cn } from '@/lib/utils';
 
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -46,6 +46,45 @@ const ICON_OPTIONS = [
   { id: 'film', label: 'Cinema', Icon: Film },
 ];
 
+interface TierStyle {
+  label: string;
+  badgeClass: string;
+  cardBorder: string;
+  iconBg: string;
+  glowDot: string;
+}
+
+const TIER_CONFIG: Record<string, TierStyle> = {
+  comum: {
+    label: 'Comum',
+    badgeClass: 'border-zinc-700/60 bg-zinc-800/40 text-zinc-300',
+    cardBorder: 'border-zinc-800 hover:border-zinc-700',
+    iconBg: 'bg-zinc-800/80 text-zinc-300 border-zinc-700/50',
+    glowDot: 'bg-zinc-400',
+  },
+  raro: {
+    label: 'Raro',
+    badgeClass: 'border-blue-500 text-blue-400 bg-blue-500/10',
+    cardBorder: 'border-blue-900/40 hover:border-blue-500/50 shadow-blue-950/20',
+    iconBg: 'bg-blue-500/15 text-blue-400 border-blue-500/30',
+    glowDot: 'bg-blue-400',
+  },
+  epico: {
+    label: 'Épico',
+    badgeClass: 'border-purple-500 text-purple-400 bg-purple-500/10',
+    cardBorder: 'border-purple-900/40 hover:border-purple-500/50 shadow-purple-950/20',
+    iconBg: 'bg-purple-500/15 text-purple-400 border-purple-500/30',
+    glowDot: 'bg-purple-400',
+  },
+  lendario: {
+    label: 'Lendário',
+    badgeClass: 'border-amber-500 text-amber-400 bg-amber-500/10 shadow-sm shadow-amber-500/20',
+    cardBorder: 'border-amber-500/30 hover:border-amber-500/60 shadow-amber-950/30',
+    iconBg: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
+    glowDot: 'bg-amber-400 animate-pulse',
+  },
+};
+
 export const Mercado: React.FC = () => {
   const { recompensas, loading, createRecompensa, deleteRecompensa, comprarRecompensa } = useLoja();
   const { perfil, descansarCompleto } = useGamificacao();
@@ -53,14 +92,19 @@ export const Mercado: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [novoTitulo, setNovoTitulo] = useState('');
   const [novoCusto, setNovoCusto] = useState('20');
+  const [novoTier, setNovoTier] = useState<RecompensaTier>('comum');
+  const [novoNivelMinimo, setNovoNivelMinimo] = useState('1');
   const [novoIcone, setNovoIcone] = useState('gift');
   const [comprandoId, setComprandoId] = useState<string | null>(null);
 
   const goldAtual = perfil?.gold_atual ?? perfil?.moedas ?? 0;
+  const nivelAtual = perfil?.nivel_atual ?? 1;
 
   const handleOpenModal = () => {
     setNovoTitulo('');
     setNovoCusto('20');
+    setNovoTier('comum');
+    setNovoNivelMinimo('1');
     setNovoIcone('gift');
     setIsModalOpen(true);
   };
@@ -72,9 +116,14 @@ export const Mercado: React.FC = () => {
     const custo = parseInt(novoCusto, 10);
     if (isNaN(custo) || custo <= 0) return;
 
+    const nivelMin = parseInt(novoNivelMinimo, 10);
+    const nivelMinimoValido = isNaN(nivelMin) || nivelMin < 1 ? 1 : nivelMin;
+
     await createRecompensa({
       titulo: novoTitulo.trim(),
       custo_gold: custo,
+      tier: novoTier,
+      nivel_minimo: nivelMinimoValido,
       icone: novoIcone,
     });
 
@@ -128,22 +177,38 @@ export const Mercado: React.FC = () => {
               </span>
             </div>
             <h2 className="text-lg font-bold text-zinc-100">
-              Seu Saldo Disponível
+              Seu Saldo & Nível de Herói
             </h2>
             <p className="text-xs text-zinc-400 max-w-md">
-              Complete tarefas de alta prioridade para ganhar até +20 Gold por missão.
+              Complete tarefas de alta prioridade para ganhar até +20 Gold e desbloquear itens de tiers lendários.
             </p>
           </div>
 
-          <div className="flex items-center gap-4 bg-zinc-950/80 border border-amber-500/30 rounded-2xl p-4 px-6 shadow-inner shrink-0">
-            <div className="text-3xl">🪙</div>
-            <div>
-              <p className="text-3xl font-black text-amber-300 font-mono tracking-tight">
-                {goldAtual}
-              </p>
-              <p className="text-[11px] uppercase tracking-wider font-bold text-amber-400/80">
-                Gold Acumulado
-              </p>
+          <div className="flex items-center gap-3 shrink-0">
+            {/* Status do Nível Atual */}
+            <div className="flex items-center gap-3.5 bg-zinc-950/80 border border-indigo-500/30 rounded-2xl p-4 px-5 shadow-inner">
+              <div className="text-2xl">⚔️</div>
+              <div>
+                <p className="text-2xl font-black text-indigo-300 font-mono tracking-tight">
+                  Nv. {nivelAtual}
+                </p>
+                <p className="text-[11px] uppercase tracking-wider font-bold text-indigo-400/80">
+                  Nível do Herói
+                </p>
+              </div>
+            </div>
+
+            {/* Status do Gold */}
+            <div className="flex items-center gap-3.5 bg-zinc-950/80 border border-amber-500/30 rounded-2xl p-4 px-5 shadow-inner">
+              <div className="text-2xl">🪙</div>
+              <div>
+                <p className="text-2xl font-black text-amber-300 font-mono tracking-tight">
+                  {goldAtual}
+                </p>
+                <p className="text-[11px] uppercase tracking-wider font-bold text-amber-400/80">
+                  Gold Acumulado
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -193,7 +258,7 @@ export const Mercado: React.FC = () => {
             {[1, 2, 3].map((n) => (
               <div
                 key={n}
-                className="h-36 rounded-2xl bg-zinc-900/40 border border-zinc-800/60 animate-pulse"
+                className="h-44 rounded-2xl bg-zinc-900/40 border border-zinc-800/60 animate-pulse"
               />
             ))}
           </div>
@@ -219,59 +284,126 @@ export const Mercado: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {recompensas.map((rec) => {
               const IconComponent = (rec.icone && ICON_MAP[rec.icone]) || Gift;
-              const podeComprar = goldAtual >= rec.custo_gold;
+              const tierKey = (rec.tier || 'comum').toLowerCase();
+              const tier = TIER_CONFIG[tierKey] || TIER_CONFIG.comum;
+              
+              const nivelMinimo = rec.nivel_minimo ?? 1;
+              const nivelBloqueado = nivelAtual < nivelMinimo;
+              const semGold = goldAtual < rec.custo_gold;
+              const podeComprar = !nivelBloqueado && !semGold;
               const estaComprando = comprandoId === rec.id;
+
+              // Definição dos textos e estados do botão segundo regra de negócio
+              let botaoTexto = "Comprar";
+              let botaoDisabled = false;
+              let botaoClasses = "bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 active:from-amber-600 text-zinc-950 shadow-amber-500/20 cursor-pointer";
+
+              if (estaComprando) {
+                botaoTexto = "Processando...";
+                botaoDisabled = true;
+                botaoClasses = "bg-zinc-800 text-zinc-400 border border-zinc-700/50 cursor-not-allowed";
+              } else if (nivelBloqueado) {
+                botaoTexto = `🔒 Bloqueado (Nv. ${nivelMinimo})`;
+                botaoDisabled = true;
+                botaoClasses = "bg-zinc-900 text-zinc-500 border border-zinc-800/80 cursor-not-allowed opacity-80";
+              } else if (semGold) {
+                botaoTexto = "Gold Insuficiente";
+                botaoDisabled = true;
+                botaoClasses = "bg-zinc-800/60 text-zinc-400 border border-zinc-700/50 cursor-not-allowed";
+              }
 
               return (
                 <div
                   key={rec.id}
-                  className="group relative overflow-hidden rounded-2xl border border-zinc-800 bg-gradient-to-b from-zinc-900/80 to-zinc-950 p-5 shadow-lg transition-all duration-300 hover:border-amber-500/40 hover:-translate-y-1 flex flex-col justify-between"
+                  className={cn(
+                    "group relative overflow-hidden rounded-2xl border bg-gradient-to-b from-zinc-900/90 to-zinc-950 p-5 shadow-lg transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between",
+                    tier.cardBorder
+                  )}
                 >
-                  <div className="space-y-3">
-                    <div className="flex items-start justify-between">
-                      <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-400 shadow-sm">
-                        <IconComponent className="w-6 h-6" />
-                      </div>
-                      
-                      <button
-                        onClick={() => deleteRecompensa(rec.id)}
-                        className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-red-500/10 transition-all cursor-pointer"
-                        title="Remover recompensa"
+                  <div className="space-y-3.5">
+                    {/* Topo do Card: Badge de Tier estilizado e Requisito de Nível / Ação */}
+                    <div className="flex items-center justify-between gap-2">
+                      <span
+                        className={cn(
+                          "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border",
+                          tier.badgeClass
+                        )}
                       >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                        <span className={cn("w-1.5 h-1.5 rounded-full", tier.glowDot)} />
+                        {tier.label}
+                      </span>
+
+                      <div className="flex items-center gap-2">
+                        {/* Se nivel_minimo > 1, exibe claramente o requisito */}
+                        {nivelMinimo > 1 && (
+                          <span
+                            className={cn(
+                              "inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold border",
+                              nivelBloqueado
+                                ? "bg-red-500/10 text-red-400 border-red-500/30"
+                                : "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
+                            )}
+                            title={nivelBloqueado ? `Requer nível ${nivelMinimo} (Seu nível: ${nivelAtual})` : `Nível ${nivelMinimo} alcançado!`}
+                          >
+                            <span>🔒 Requer Nível {nivelMinimo}</span>
+                          </span>
+                        )}
+
+                        <button
+                          onClick={() => deleteRecompensa(rec.id)}
+                          className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-red-500/10 transition-all cursor-pointer"
+                          title="Remover recompensa"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
 
-                    <div>
-                      <h3 className="text-base font-bold text-zinc-100 group-hover:text-amber-200 transition-colors">
-                        {rec.titulo}
-                      </h3>
-                      <div className="flex items-center gap-1.5 mt-1.5">
-                        <span className="text-sm">🪙</span>
-                        <span className="text-sm font-extrabold text-amber-300 font-mono">
-                          {rec.custo_gold} Gold
-                        </span>
+                    {/* Bloco Central: Ícone e Título com Preço em Gold */}
+                    <div className="flex items-start gap-3.5">
+                      <div
+                        className={cn(
+                          "p-3 rounded-xl border shadow-sm shrink-0",
+                          tier.iconBg
+                        )}
+                      >
+                        <IconComponent className="w-6 h-6" />
+                      </div>
+
+                      <div className="min-w-0">
+                        <h3 className="text-base font-bold text-zinc-100 group-hover:text-amber-200 transition-colors leading-snug">
+                          {rec.titulo}
+                        </h3>
+                        <div className="flex items-center gap-1.5 mt-1.5">
+                          <span className="text-sm">🪙</span>
+                          <span className="text-sm font-extrabold text-amber-300 font-mono">
+                            {rec.custo_gold} Gold
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
 
+                  {/* Rodapé: Botão de Compra com Trava por Nível e Gold */}
                   <div className="pt-4 mt-3 border-t border-zinc-800/80">
                     <button
                       onClick={() => handleComprar(rec)}
-                      disabled={estaComprando}
+                      disabled={botaoDisabled}
                       className={cn(
-                        "w-full py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md",
-                        podeComprar
-                          ? "bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 active:from-amber-600 active:to-amber-700 text-zinc-950 shadow-amber-500/20"
-                          : "bg-zinc-800/60 hover:bg-zinc-800 text-zinc-400 border border-zinc-700/50"
+                        "w-full py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md",
+                        botaoClasses
                       )}
                     >
                       {estaComprando ? (
                         <span>Processando...</span>
                       ) : (
                         <>
-                          <Coins className="w-4 h-4" />
-                          <span>{podeComprar ? 'Comprar Recompensa' : 'Gold Insuficiente'}</span>
+                          {nivelBloqueado ? (
+                            <Lock className="w-4 h-4" />
+                          ) : (
+                            <Coins className="w-4 h-4" />
+                          )}
+                          <span>{botaoTexto}</span>
                         </>
                       )}
                     </button>
@@ -320,18 +452,61 @@ export const Mercado: React.FC = () => {
                 />
               </div>
 
+              {/* Grid: Custo em Gold e Nível Mínimo */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-1.5">
+                    Custo em Gold (🪙)
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    required
+                    value={novoCusto}
+                    onChange={(e) => setNovoCusto(e.target.value)}
+                    className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-3.5 py-2.5 text-sm text-zinc-100 placeholder-zinc-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-1.5">
+                    Nível Mínimo
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    required
+                    value={novoNivelMinimo}
+                    onChange={(e) => setNovoNivelMinimo(e.target.value)}
+                    className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-3.5 py-2.5 text-sm text-zinc-100 placeholder-zinc-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 font-mono"
+                    placeholder="1"
+                  />
+                </div>
+              </div>
+
+              {/* Seleção de Tier / Raridade RPG */}
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-1.5">
-                  Custo em Gold (🪙)
+                <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-1.5 flex items-center justify-between">
+                  <span>Tier de Raridade</span>
+                  <span
+                    className={cn(
+                      "px-2 py-0.5 rounded text-[10px] font-bold uppercase border",
+                      TIER_CONFIG[novoTier]?.badgeClass
+                    )}
+                  >
+                    {TIER_CONFIG[novoTier]?.label}
+                  </span>
                 </label>
-                <input
-                  type="number"
-                  min="1"
-                  required
-                  value={novoCusto}
-                  onChange={(e) => setNovoCusto(e.target.value)}
-                  className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-3.5 py-2.5 text-sm text-zinc-100 placeholder-zinc-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 font-mono"
-                />
+                <select
+                  value={novoTier}
+                  onChange={(e) => setNovoTier(e.target.value as RecompensaTier)}
+                  className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-3.5 py-2.5 text-sm text-zinc-100 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 cursor-pointer"
+                >
+                  <option value="comum">Comum (Padrão)</option>
+                  <option value="raro">Raro</option>
+                  <option value="epico">Épico</option>
+                  <option value="lendario">Lendário</option>
+                </select>
               </div>
 
               <div>
